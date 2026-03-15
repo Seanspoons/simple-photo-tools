@@ -63,7 +63,7 @@ select:disabled {
 
 .hero {
   display: grid;
-  grid-template-columns: 1.5fr 1fr;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.9fr);
   gap: 20px;
   margin-bottom: 20px;
 }
