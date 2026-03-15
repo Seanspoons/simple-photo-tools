@@ -74,17 +74,17 @@ export function WatermarkControls({
             </button>
           </div>
           <div className="preset-list" aria-label="Saved presets">
-            {savedPresets.map((preset) => (
-              <div key={preset.id} className="preset-chip">
-                <button
-                  type="button"
-                  className="ghost-button preset-apply-button"
-                  onClick={() => onApplyPreset(preset.id)}
-                  disabled={disabled}
-                >
-                  {preset.name}
-                </button>
-                {!preset.id.startsWith('starter-') ? (
+            {savedPresets.length > 0 ? (
+              savedPresets.map((preset) => (
+                <div key={preset.id} className="preset-chip">
+                  <button
+                    type="button"
+                    className="ghost-button preset-apply-button"
+                    onClick={() => onApplyPreset(preset.id)}
+                    disabled={disabled}
+                  >
+                    {preset.name}
+                  </button>
                   <button
                     type="button"
                     className="preset-delete-button"
@@ -94,13 +94,14 @@ export function WatermarkControls({
                   >
                     Remove
                   </button>
-                ) : null}
-              </div>
-            ))}
+                </div>
+              ))
+            ) : (
+              <p className="helper-text">No saved presets yet.</p>
+            )}
           </div>
           <p className="helper-text">
-            Save a favorite once, then tap it next time. Starter presets cover the usual white and
-            black top-right JPEG setup.
+            Presets save the watermark text, style settings, position, and export format together.
           </p>
         </div>
 

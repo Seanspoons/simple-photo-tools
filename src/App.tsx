@@ -6,8 +6,7 @@ import {
   DEFAULT_SETTINGS,
   EXPORT_FORMAT_STORAGE_KEY,
   PRESETS_STORAGE_KEY,
-  SETTINGS_STORAGE_KEY,
-  STARTER_PRESETS
+  SETTINGS_STORAGE_KEY
 } from './constants';
 import { createDownloadFilename, exportCanvasToBlob, shareImageIfPossible, triggerDownload } from './utils/exportImage';
 import { loadImageAsset } from './utils/imageLoader';
@@ -52,24 +51,23 @@ function loadStoredExportFormat(): ExportFormat {
 
 function loadStoredPresets(): SavedPreset[] {
   if (typeof window === 'undefined') {
-    return STARTER_PRESETS;
+    return [];
   }
 
   try {
     const raw = window.localStorage.getItem(PRESETS_STORAGE_KEY);
     if (!raw) {
-      return STARTER_PRESETS;
+      return [];
     }
 
-    const parsed = JSON.parse(raw) as SavedPreset[];
-    const customPresets = parsed.filter((preset) => !preset.id.startsWith('starter-'));
-    return [...STARTER_PRESETS, ...customPresets];
+    return JSON.parse(raw) as SavedPreset[];
   } catch {
-    return STARTER_PRESETS;
+    return [];
   }
 }
 
 export default function App() {
+  const logoUrl = `${import.meta.env.BASE_URL}icon.svg`;
   const [imageAsset, setImageAsset] = useState<ImageAsset | null>(null);
   const [settings, setSettings] = useState<WatermarkSettings>(loadStoredSettings);
   const [exportFormat, setExportFormat] = useState<ExportFormat>(loadStoredExportFormat);
@@ -91,8 +89,7 @@ export default function App() {
   }, [exportFormat]);
 
   useEffect(() => {
-    const customPresets = savedPresets.filter((preset) => !preset.id.startsWith('starter-'));
-    window.localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(customPresets));
+    window.localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(savedPresets));
   }, [savedPresets]);
 
   useEffect(() => {
@@ -211,7 +208,7 @@ export default function App() {
 
   const handleDeletePreset = (presetId: string) => {
     const preset = savedPresets.find((entry) => entry.id === presetId);
-    if (!preset || preset.id.startsWith('starter-')) {
+    if (!preset) {
       return;
     }
 
@@ -268,20 +265,32 @@ export default function App() {
     <div className="app-shell">
       <main className="app">
         <section className="hero">
-          <div>
-            <p className="eyebrow">Private photo watermarking</p>
-            <h1>Watermark photos locally, even offline.</h1>
-            <p className="hero-copy">
-              Upload a photo, adjust the text watermark, and download a full-resolution file. Your
-              image stays in the browser and is never uploaded to a server.
-            </p>
+          <div className="hero-copy-block">
+            <div className="brand-mark" aria-hidden="true">
+              <img src={logoUrl} alt="" />
+            </div>
+            <div>
+              <p className="eyebrow">Photo Watermarker</p>
+              <h1>Quick photo watermarking that feels simple.</h1>
+              <p className="hero-copy">
+                Pick a photo, add your text, preview the result, and download the finished image in
+                a couple of taps.
+              </p>
+              <div className="hero-tags" aria-label="Supported image types">
+                <span className="hero-tag">JPEG</span>
+                <span className="hero-tag">PNG</span>
+                <span className="hero-tag">WebP</span>
+                <span className="hero-tag">HEIC</span>
+                <span className="hero-tag">HEIF</span>
+              </div>
+            </div>
           </div>
           <div className="hero-card">
             <p className="hero-stat-label">Current image</p>
             <p className="hero-stat">{imageSummary}</p>
             <p className="helper-text">
-              Supported formats: JPEG, PNG, WebP, HEIC, and HEIF. HEIC is converted locally before
-              preview and export.
+              Your photo stays on this device. Save presets if you want a favorite setup ready for
+              next time.
             </p>
           </div>
         </section>
@@ -365,6 +374,10 @@ export default function App() {
           </div>
         </section>
       </main>
+
+      <footer className="site-footer">
+        <p>© 2026 Photo Watermarker. Process photos locally and keep your originals private.</p>
+      </footer>
 
       <canvas ref={exportCanvasRef} className="sr-only" aria-hidden="true" />
     </div>

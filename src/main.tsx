@@ -4,7 +4,7 @@ import { registerSW } from 'virtual:pwa-register';
 import '@fontsource/roboto/latin-400.css';
 import '@fontsource/roboto/latin-500.css';
 import '@fontsource/roboto/latin-700.css';
-import '@fontsource-variable/playwrite-us-trad/wght.css';
+import '@fontsource/playwrite-us-trad/400.css';
 import App from './App';
 import './styles.css';
 

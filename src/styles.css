@@ -68,6 +68,31 @@ select:disabled {
   margin-bottom: 20px;
 }
 
+.hero-copy-block {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.brand-mark {
+  width: 84px;
+  height: 84px;
+  border-radius: 22px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.brand-mark img {
+  width: 64px;
+  height: 64px;
+  display: block;
+}
+
 .hero h1 {
   margin: 0;
   font-size: clamp(2rem, 4vw, 3.4rem);
@@ -80,6 +105,26 @@ select:disabled {
   margin: 14px 0 0;
   color: var(--text-soft);
   font-size: 1rem;
+}
+
+.hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.hero-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #faf8f3;
+  color: var(--accent);
+  font-size: 0.88rem;
+  font-weight: 500;
 }
 
 .hero-card,
@@ -390,6 +435,14 @@ select:disabled {
   padding: 14px 18px;
 }
 
+.site-footer {
+  width: min(1180px, 100%);
+  margin: 18px auto 0;
+  padding: 0 4px;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+}
+
 .status-message {
   color: var(--accent);
 }
@@ -413,6 +466,10 @@ select:disabled {
 @media (max-width: 920px) {
   .app-shell {
     padding: 16px;
+  }
+
+  .hero-copy-block {
+    grid-template-columns: 1fr;
   }
 
   .hero,

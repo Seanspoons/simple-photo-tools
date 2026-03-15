@@ -1,4 +1,4 @@
-import { SavedPreset, WatermarkSettings } from './types';
+import { WatermarkSettings } from './types';
 
 export const FONT_OPTIONS = [
   'Arial',
@@ -27,24 +27,3 @@ export const DEFAULT_SETTINGS: WatermarkSettings = {
 export const SETTINGS_STORAGE_KEY = 'photo-watermarker:settings';
 export const EXPORT_FORMAT_STORAGE_KEY = 'photo-watermarker:export-format';
 export const PRESETS_STORAGE_KEY = 'photo-watermarker:presets';
-
-export const STARTER_PRESETS: SavedPreset[] = [
-  {
-    id: 'starter-mom-white',
-    name: 'Mom White',
-    settings: {
-      ...DEFAULT_SETTINGS,
-      color: '#ffffff'
-    },
-    exportFormat: 'jpeg'
-  },
-  {
-    id: 'starter-mom-black',
-    name: 'Mom Black',
-    settings: {
-      ...DEFAULT_SETTINGS,
-      color: '#000000'
-    },
-    exportFormat: 'jpeg'
-  }
-];
