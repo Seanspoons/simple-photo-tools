@@ -56,9 +56,11 @@ This repo now includes a GitHub Actions workflow at `.github/workflows/deploy-pa
 3. Set the source to `GitHub Actions`.
 4. Push to `main` again, or run the workflow manually.
 
-If you host the app at the default Pages URL for this repo, the included workflow already builds with the correct base path for `https://seanspoons.github.io/photo-watermarker/`.
+This repo is now configured for a custom domain deployment with `photowatermarker.com` and includes a `public/CNAME` file for GitHub Pages.
 
-If you later use a custom domain, the site should be rebuilt with `VITE_BASE_PATH=/` instead of the repo subpath.
+If you stay on the custom domain, the current workflow is correct.
+
+If you later want to serve the app from the default GitHub Pages repo URL instead, the Vite base path and workflow build step would need to be switched back to the repo subpath.
 
 ## How HEIC support works
 

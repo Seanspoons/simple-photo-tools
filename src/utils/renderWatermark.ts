@@ -75,15 +75,13 @@ export function renderWatermarkedImage({
   }
 
   const fontSize = getFontSize(width, height, settings);
-  const isPlaywrite = settings.fontFamily === 'Playwrite US Trad';
-  const fontWeight = isPlaywrite ? (settings.bold ? '400' : '300') : settings.bold ? '700' : '400';
-  const fontFamily = isPlaywrite
-    ? '"Playwrite US Trad", cursive'
-    : settings.fontFamily === 'Roboto'
+  const fontWeight = settings.bold ? '700' : '400';
+  const fontFamily =
+    settings.fontFamily === 'Roboto'
       ? '"Roboto", "Segoe UI", Arial, sans-serif'
-      : settings.fontFamily;
-
-  context.fontKerning = 'normal';
+      : settings.fontFamily === 'Playwrite US Trad'
+        ? '"Playwrite US Trad", cursive'
+        : settings.fontFamily;
   context.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
   context.textAlign = 'left';
   context.textBaseline = 'top';

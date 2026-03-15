@@ -374,7 +374,18 @@ export default function App() {
       </main>
 
       <footer className="site-footer">
-        <p>© 2026 Photo Watermarker. Process photos locally and keep your originals private.</p>
+        <div className="site-footer-card">
+          <div className="site-footer-brand">
+            <img src={logoUrl} alt="" aria-hidden="true" />
+            <div>
+              <p className="site-footer-title">Photo Watermarker</p>
+              <p className="site-footer-copy">
+                Add a clean text watermark to your photos and save the finished image in seconds.
+              </p>
+            </div>
+          </div>
+          <p className="site-footer-meta">© 2026 Photo Watermarker. Photos stay on your device.</p>
+        </div>
       </footer>
 
       <canvas ref={exportCanvasRef} className="sr-only" aria-hidden="true" />
