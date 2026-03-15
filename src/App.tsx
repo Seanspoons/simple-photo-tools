@@ -217,6 +217,19 @@ export default function App() {
     setStatusMessage(`Removed "${preset.name}".`);
   };
 
+  const handleChooseAnotherPhoto = () => {
+    setImageAsset((current) => {
+      if (current?.objectUrl) {
+        URL.revokeObjectURL(current.objectUrl);
+      }
+
+      return null;
+    });
+    setPreviewMode('after');
+    setErrorMessage(null);
+    setStatusMessage('Ready for another photo.');
+  };
+
   const runExport = async (format: ExportFormat, action: 'download' | 'share') => {
     if (!imageAsset || !exportCanvasRef.current) {
       setErrorMessage('Choose a photo before saving.');
@@ -362,6 +375,14 @@ export default function App() {
                   disabled={!imageAsset || isBusy}
                 >
                   Share
+                </button>
+                <button
+                  type="button"
+                  className="ghost-button"
+                  onClick={handleChooseAnotherPhoto}
+                  disabled={!imageAsset || isBusy}
+                >
+                  Use a Different Photo
                 </button>
               </div>
 
