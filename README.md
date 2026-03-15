@@ -2,10 +2,12 @@
 
 Photo Watermarker is a small React + TypeScript web app for adding text watermarks to photos entirely in the browser. It is installable as a PWA, works offline after the app shell is loaded, and does not use a backend or upload images to a server.
 
+Live site: `https://photowatermarker.com`
+
 ## Features
 
 - Upload local JPEG, PNG, WebP, HEIC, or HEIF images
-- Convert HEIC and HEIF to JPEG in the browser before processing
+- Handle common photo formats entirely in the browser
 - Preview watermark changes instantly on a scaled preview canvas
 - Export full-resolution JPEG or PNG files with the watermark applied
 - Choose watermark text, corner, font, color, opacity, size, margin, bold, shadow, and background pill
@@ -62,7 +64,7 @@ If you stay on the custom domain, the current workflow is correct.
 
 If you later want to serve the app from the default GitHub Pages repo URL instead, the Vite base path and workflow build step would need to be switched back to the repo subpath.
 
-## How HEIC support works
+## Image format support
 
 Most browsers do not decode HEIC or HEIF images natively. This app detects `.heic` and `.heif` files, or matching MIME types, and converts them client-side with `heic2any` before the normal preview and export pipeline runs. The converted image remains local to the browser session.
 
@@ -100,7 +102,7 @@ src/
 - HEIC conversion depends on browser memory limits for very large files.
 - `navigator.share` is only available on supported mobile and desktop browsers.
 - The PWA caches app assets for offline use, but it does not permanently cache user photos.
-- The `Inter` option uses the local font if available and otherwise falls back to system sans-serif fonts.
+- The script-style font depends on browser font rendering and may look slightly different across devices.
 
 ## Notes
 
