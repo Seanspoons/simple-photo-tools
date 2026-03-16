@@ -84,6 +84,21 @@ export function CollageControls({
           </p>
         </div>
 
+        <div className="field field-full collage-summary">
+          <span>Quick summary</span>
+          <p className="helper-text">
+            {settings.columns} columns, {settings.gap}px spacing, {settings.fitMode === 'cover' ? 'filled tiles' : 'full photos'}
+            , and{' '}
+            {settings.featuredSpan === '1x1'
+              ? 'all photos the same size.'
+              : settings.featuredSpan === '2x2'
+                ? 'one large 2x2 main photo.'
+                : settings.featuredSpan === '2x1'
+                  ? 'one wide main photo.'
+                  : 'one tall main photo.'}
+          </p>
+        </div>
+
         <label className="field">
           <span>Size</span>
           <select
@@ -160,7 +175,7 @@ export function CollageControls({
         </label>
 
         <fieldset className="field field-full layout-choice-group">
-          <legend>Main photo size</legend>
+          <legend>Layout style</legend>
           <div className="choice-cards">
             <button
               type="button"
@@ -168,8 +183,16 @@ export function CollageControls({
               onClick={() => onChange('featuredSpan', '1x1')}
               disabled={disabled}
             >
-              <strong>Normal</strong>
-              <span>All photos use the same square size.</span>
+              <span className="layout-preview layout-preview-grid" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+                <span />
+              </span>
+              <span className="choice-card-copy">
+                <strong>Normal</strong>
+                <span>All photos use the same square size.</span>
+              </span>
             </button>
             <button
               type="button"
@@ -177,8 +200,17 @@ export function CollageControls({
               onClick={() => onChange('featuredSpan', '2x2')}
               disabled={disabled}
             >
-              <strong>Large 2x2</strong>
-              <span>Main photo takes the space of 4 square tiles.</span>
+              <span className="layout-preview layout-preview-2x2" aria-hidden="true">
+                <span className="is-main" />
+                <span />
+                <span />
+                <span />
+                <span />
+              </span>
+              <span className="choice-card-copy">
+                <strong>Large 2x2</strong>
+                <span>Main photo takes the space of 4 square tiles.</span>
+              </span>
             </button>
             <button
               type="button"
@@ -186,8 +218,16 @@ export function CollageControls({
               onClick={() => onChange('featuredSpan', '2x1')}
               disabled={disabled}
             >
-              <strong>Wide 2x1</strong>
-              <span>Main photo spans 2 tiles across.</span>
+              <span className="layout-preview layout-preview-2x1" aria-hidden="true">
+                <span className="is-main" />
+                <span />
+                <span />
+                <span />
+              </span>
+              <span className="choice-card-copy">
+                <strong>Wide 2x1</strong>
+                <span>Main photo spans 2 tiles across.</span>
+              </span>
             </button>
             <button
               type="button"
@@ -195,10 +235,22 @@ export function CollageControls({
               onClick={() => onChange('featuredSpan', '1x2')}
               disabled={disabled}
             >
-              <strong>Tall 1x2</strong>
-              <span>Main photo spans 2 tiles tall.</span>
+              <span className="layout-preview layout-preview-1x2" aria-hidden="true">
+                <span className="is-main" />
+                <span />
+                <span />
+                <span />
+                <span />
+              </span>
+              <span className="choice-card-copy">
+                <strong>Tall 1x2</strong>
+                <span>Main photo spans 2 tiles tall.</span>
+              </span>
             </button>
           </div>
+          <p className="helper-text">
+            Tip: the first photo becomes the main photo whenever you choose a larger layout.
+          </p>
         </fieldset>
       </div>
     </section>
