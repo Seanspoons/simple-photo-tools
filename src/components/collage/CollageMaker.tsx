@@ -583,7 +583,7 @@ export function CollageMaker() {
                 <h2>Photos</h2>
               </div>
             </div>
-            <p className="helper-text">
+            <p className="helper-text section-helper-text">
               Drag photos into place on desktop, or use the move buttons below. The first photo is
               your main photo.
             </p>

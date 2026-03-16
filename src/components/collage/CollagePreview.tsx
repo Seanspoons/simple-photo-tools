@@ -41,7 +41,7 @@ export function CollagePreview({
         )}
       </div>
 
-      {helperText && canBuild ? <p className="helper-text">{helperText}</p> : null}
+      {helperText && canBuild ? <p className="helper-text section-helper-text">{helperText}</p> : null}
     </section>
   );
 }

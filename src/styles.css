@@ -223,10 +223,11 @@ select:disabled {
   font-size: 1.1rem;
 }
 
-.panel-actions-row {
+.panel-heading-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
-  margin: -6px 0 18px;
+  gap: 10px;
 }
 
 .file-badge,
@@ -284,6 +285,10 @@ select:disabled {
   margin: 0;
   color: var(--text-soft);
   font-size: 0.94rem;
+}
+
+.section-helper-text {
+  margin-top: 14px;
 }
 
 .preview-shell {
@@ -405,7 +410,7 @@ select:disabled {
 .arrange-panel {
   display: grid;
   gap: 12px;
-  margin-top: 14px;
+  margin-top: 18px;
   padding: 14px;
   border-radius: 16px;
   border: 1px solid var(--border);
@@ -912,6 +917,15 @@ select:disabled {
 
   .panel-heading {
     flex-direction: column;
+  }
+
+  .panel-heading-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .panel-heading-actions > * {
+    flex: 1 1 0;
   }
 
   .preview-placeholder {

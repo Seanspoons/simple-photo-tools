@@ -70,14 +70,14 @@ export function CollageControls({
           <p className="eyebrow">Step 2</p>
           <h2>Choose the look</h2>
         </div>
-        <button type="button" className="secondary-button" onClick={onReset} disabled={disabled}>
-          Reset
-        </button>
-      </div>
-      <div className="panel-actions-row">
-        <button type="button" className="ghost-button" onClick={onAutoArrange} disabled={disabled}>
-          Auto arrange
-        </button>
+        <div className="panel-heading-actions">
+          <button type="button" className="ghost-button" onClick={onAutoArrange} disabled={disabled}>
+            Auto arrange
+          </button>
+          <button type="button" className="secondary-button" onClick={onReset} disabled={disabled}>
+            Reset
+          </button>
+        </div>
       </div>
 
       <div className="controls-grid">
