@@ -55,8 +55,42 @@ function getGridCells(
   });
 }
 
+function getSquareGridCells(
+  imageCount: number,
+  region: Cell,
+  columns: number,
+  gap: number
+): Cell[] {
+  if (imageCount <= 0) {
+    return [];
+  }
+
+  const safeColumns = clamp(columns, 1, Math.max(1, imageCount));
+  const rows = Math.ceil(imageCount / safeColumns);
+  const cellSize = Math.min(
+    (region.width - gap * (safeColumns - 1)) / safeColumns,
+    (region.height - gap * (rows - 1)) / rows
+  );
+  const gridWidth = cellSize * safeColumns + gap * (safeColumns - 1);
+  const gridHeight = cellSize * rows + gap * (rows - 1);
+  const offsetX = region.x + (region.width - gridWidth) / 2;
+  const offsetY = region.y + (region.height - gridHeight) / 2;
+
+  return Array.from({ length: imageCount }, (_, index) => {
+    const column = index % safeColumns;
+    const row = Math.floor(index / safeColumns);
+
+    return {
+      x: offsetX + column * (cellSize + gap),
+      y: offsetY + row * (cellSize + gap),
+      width: cellSize,
+      height: cellSize
+    };
+  });
+}
+
 function getUniformCells(imageCount: number, outputSize: CanvasSize, settings: CollageSettings): Cell[] {
-  return getGridCells(
+  return getSquareGridCells(
     imageCount,
     { x: 0, y: 0, width: outputSize.width, height: outputSize.height },
     settings.columns,
@@ -138,14 +172,20 @@ function getFeatureGridCells(imageCount: number, outputSize: CanvasSize, gap: nu
 
   const columns = 3;
   const rows = Math.max(3, Math.ceil((imageCount + 3) / columns));
-  const tileWidth = (outputSize.width - gap * (columns - 1)) / columns;
-  const tileHeight = (outputSize.height - gap * (rows - 1)) / rows;
+  const cellSize = Math.min(
+    (outputSize.width - gap * (columns - 1)) / columns,
+    (outputSize.height - gap * (rows - 1)) / rows
+  );
+  const gridWidth = cellSize * columns + gap * (columns - 1);
+  const gridHeight = cellSize * rows + gap * (rows - 1);
+  const offsetX = (outputSize.width - gridWidth) / 2;
+  const offsetY = (outputSize.height - gridHeight) / 2;
   const cells: Cell[] = [
     {
-      x: 0,
-      y: 0,
-      width: tileWidth * 2 + gap,
-      height: tileHeight * 2 + gap
+      x: offsetX,
+      y: offsetY,
+      width: cellSize * 2 + gap,
+      height: cellSize * 2 + gap
     }
   ];
   const availableSlots: Array<{ column: number; row: number }> = [];
@@ -167,10 +207,10 @@ function getFeatureGridCells(imageCount: number, outputSize: CanvasSize, gap: nu
     }
 
     cells.push({
-      x: slot.column * (tileWidth + gap),
-      y: slot.row * (tileHeight + gap),
-      width: tileWidth,
-      height: tileHeight
+      x: offsetX + slot.column * (cellSize + gap),
+      y: offsetY + slot.row * (cellSize + gap),
+      width: cellSize,
+      height: cellSize
     });
   }
 
