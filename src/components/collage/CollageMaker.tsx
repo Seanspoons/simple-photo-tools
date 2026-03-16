@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ConfirmModal } from '../ConfirmModal';
-import { CollageSettings, ImageAsset } from '../../types';
+import { COLLAGE_PRESETS_STORAGE_KEY } from '../../constants';
+import { CollageSavedPreset, CollageSettings, ImageAsset } from '../../types';
 import {
   createDownloadFilename,
   exportCanvasToBlob,
@@ -31,9 +32,28 @@ const DEFAULT_COLLAGE_SETTINGS: CollageSettings = {
   featuredSpan: '1x1'
 };
 
+function loadStoredCollagePresets(): CollageSavedPreset[] {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+
+  try {
+    const raw = window.localStorage.getItem(COLLAGE_PRESETS_STORAGE_KEY);
+    if (!raw) {
+      return [];
+    }
+
+    return JSON.parse(raw) as CollageSavedPreset[];
+  } catch {
+    return [];
+  }
+}
+
 export function CollageMaker() {
   const [images, setImages] = useState<ImageAsset[]>([]);
   const [settings, setSettings] = useState<CollageSettings>(DEFAULT_COLLAGE_SETTINGS);
+  const [savedPresets, setSavedPresets] = useState<CollageSavedPreset[]>(loadStoredCollagePresets);
+  const [presetName, setPresetName] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
@@ -65,6 +85,10 @@ export function CollageMaker() {
   useEffect(() => {
     setCanNativeShare('share' in navigator && 'canShare' in navigator);
   }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(COLLAGE_PRESETS_STORAGE_KEY, JSON.stringify(savedPresets));
+  }, [savedPresets]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -182,6 +206,47 @@ export function CollageMaker() {
   const handleReset = () => {
     setSettings(DEFAULT_COLLAGE_SETTINGS);
     setStatusMessage('Collage settings reset.');
+  };
+
+  const handleSavePreset = () => {
+    const trimmedName = presetName.trim();
+    if (!trimmedName) {
+      setErrorMessage('Add a name before saving this collage look.');
+      return;
+    }
+
+    const nextPreset: CollageSavedPreset = {
+      id: `collage-preset-${Date.now()}`,
+      name: trimmedName,
+      settings
+    };
+
+    setSavedPresets((current) => [...current, nextPreset]);
+    setPresetName('');
+    setErrorMessage(null);
+    setStatusMessage(`Saved "${trimmedName}".`);
+  };
+
+  const handleApplyPreset = (presetId: string) => {
+    const preset = savedPresets.find((entry) => entry.id === presetId);
+    if (!preset) {
+      return;
+    }
+
+    setSettings(preset.settings);
+    setErrorMessage(null);
+    setStatusMessage(`Applied "${preset.name}".`);
+  };
+
+  const handleDeletePreset = (presetId: string) => {
+    const preset = savedPresets.find((entry) => entry.id === presetId);
+    if (!preset) {
+      return;
+    }
+
+    setSavedPresets((current) => current.filter((entry) => entry.id !== presetId));
+    setErrorMessage(null);
+    setStatusMessage(`Removed "${preset.name}".`);
   };
 
   const handleClearPhotos = () => {
@@ -314,7 +379,13 @@ export function CollageMaker() {
         <div className="right-column">
           <CollageControls
             settings={settings}
+            presetName={presetName}
+            savedPresets={savedPresets}
             disabled={isBusy}
+            onPresetNameChange={setPresetName}
+            onSavePreset={handleSavePreset}
+            onApplyPreset={handleApplyPreset}
+            onDeletePreset={handleDeletePreset}
             onChange={handleSettingsChange}
             onReset={handleReset}
           />

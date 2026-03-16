@@ -1,15 +1,27 @@
-import { CollageSettings } from '../../types';
+import { CollageSavedPreset, CollageSettings } from '../../types';
 
 interface CollageControlsProps {
   settings: CollageSettings;
+  presetName: string;
+  savedPresets: CollageSavedPreset[];
   disabled?: boolean;
+  onPresetNameChange: (value: string) => void;
+  onSavePreset: () => void;
+  onApplyPreset: (presetId: string) => void;
+  onDeletePreset: (presetId: string) => void;
   onChange: <K extends keyof CollageSettings>(key: K, value: CollageSettings[K]) => void;
   onReset: () => void;
 }
 
 export function CollageControls({
   settings,
+  presetName,
+  savedPresets,
   disabled = false,
+  onPresetNameChange,
+  onSavePreset,
+  onApplyPreset,
+  onDeletePreset,
   onChange,
   onReset
 }: CollageControlsProps) {
@@ -26,6 +38,52 @@ export function CollageControls({
       </div>
 
       <div className="controls-grid">
+        <div className="field field-full preset-panel">
+          <span>Saved collage looks</span>
+          <div className="preset-save-row">
+            <input
+              type="text"
+              value={presetName}
+              onChange={(event) => onPresetNameChange(event.target.value)}
+              disabled={disabled}
+              placeholder="Name this collage look"
+            />
+            <button type="button" className="secondary-button" onClick={onSavePreset} disabled={disabled}>
+              Save look
+            </button>
+          </div>
+          <div className="preset-list" aria-label="Saved collage looks">
+            {savedPresets.length > 0 ? (
+              savedPresets.map((preset) => (
+                <div key={preset.id} className="preset-chip">
+                  <button
+                    type="button"
+                    className="ghost-button preset-apply-button"
+                    onClick={() => onApplyPreset(preset.id)}
+                    disabled={disabled}
+                  >
+                    {preset.name}
+                  </button>
+                  <button
+                    type="button"
+                    className="preset-delete-button"
+                    onClick={() => onDeletePreset(preset.id)}
+                    disabled={disabled}
+                    aria-label={`Delete collage look ${preset.name}`}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p className="helper-text">No saved collage looks yet.</p>
+            )}
+          </div>
+          <p className="helper-text">
+            Each saved look keeps your collage size, spacing, background, and main photo size.
+          </p>
+        </div>
+
         <label className="field">
           <span>Size</span>
           <select
