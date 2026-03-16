@@ -5,7 +5,7 @@ interface CanvasSize {
   height: number;
 }
 
-interface Cell {
+export interface CollageLayoutCell {
   x: number;
   y: number;
   width: number;
@@ -117,7 +117,7 @@ function getSquareGridCells(
   imageCount: number,
   outputSize: CanvasSize,
   settings: CollageSettings
-): { cells: Cell[]; metrics: CollageLayoutMetrics } {
+): { cells: CollageLayoutCell[]; metrics: CollageLayoutMetrics } {
   if (imageCount <= 0) {
     return {
       cells: [],
@@ -244,6 +244,15 @@ export function getCollageLayoutMetrics(
 ): CollageLayoutMetrics {
   const outputSize = sizeOverride ?? getOutputSize(settings);
   return getSquareGridCells(imageCount, outputSize, settings).metrics;
+}
+
+export function getCollageLayoutCells(
+  imageCount: number,
+  settings: CollageSettings,
+  sizeOverride?: CanvasSize
+): CollageLayoutCell[] {
+  const outputSize = sizeOverride ?? getOutputSize(settings);
+  return getSquareGridCells(imageCount, outputSize, settings).cells;
 }
 
 export function renderCollage(
