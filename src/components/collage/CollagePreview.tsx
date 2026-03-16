@@ -6,7 +6,7 @@ import {
   useRef,
   useState
 } from 'react';
-import { CollageLayoutCell, CollageLayoutFrame } from '../../utils/collage/renderCollage';
+import { CollageLayoutCell } from '../../utils/collage/renderCollage';
 
 interface CollagePreviewProps {
   canvasRef: RefObject<HTMLCanvasElement>;
@@ -16,7 +16,6 @@ interface CollagePreviewProps {
   helperText?: string;
   exportFrameNote?: string;
   previewCells?: CollageLayoutCell[];
-  previewFrame?: CollageLayoutFrame;
   previewCornerRadius?: number;
   previewImageUrls?: string[];
   isInteractive?: boolean;
@@ -38,7 +37,6 @@ export function CollagePreview({
   helperText,
   exportFrameNote,
   previewCells = [],
-  previewFrame,
   previewCornerRadius = 0,
   previewImageUrls = [],
   isInteractive = false,
@@ -102,21 +100,21 @@ export function CollagePreview({
   }, [canvasRef, displaySize.height, displaySize.width, previewCells, previewCornerRadius]);
 
   const scaledFrame = useMemo(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || !previewFrame || displaySize.width === 0 || displaySize.height === 0) {
+    if (scaledCells.length === 0) {
       return null;
     }
 
-    const scaleX = displaySize.width / canvas.width;
-    const scaleY = displaySize.height / canvas.height;
-
     return {
-      x: previewFrame.x * scaleX,
-      y: previewFrame.y * scaleY,
-      width: previewFrame.width * scaleX,
-      height: previewFrame.height * scaleY
+      x: Math.min(...scaledCells.map((cell) => cell.x)),
+      y: Math.min(...scaledCells.map((cell) => cell.y)),
+      width:
+        Math.max(...scaledCells.map((cell) => cell.x + cell.width)) -
+        Math.min(...scaledCells.map((cell) => cell.x)),
+      height:
+        Math.max(...scaledCells.map((cell) => cell.y + cell.height)) -
+        Math.min(...scaledCells.map((cell) => cell.y))
     };
-  }, [canvasRef, displaySize.height, displaySize.width, previewFrame]);
+  }, [scaledCells]);
 
   const handleTileDragStart = (event: DragEvent<HTMLButtonElement>, index: number) => {
     event.dataTransfer.effectAllowed = 'move';

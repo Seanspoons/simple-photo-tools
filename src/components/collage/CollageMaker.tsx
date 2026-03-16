@@ -19,7 +19,6 @@ import {
 import { loadImageAsset } from '../../utils/imageLoader';
 import {
   getCollageLayoutCells,
-  getCollageLayoutFrame,
   getCollageLayoutMetrics,
   getCollageOutputSize,
   getRenderedImageRect,
@@ -157,10 +156,6 @@ export function CollageMaker() {
   }, [settings]);
   const previewCells = useMemo(
     () => getCollageLayoutCells(images.length, settings, previewSize),
-    [images.length, previewSize, settings]
-  );
-  const previewFrame = useMemo(
-    () => getCollageLayoutFrame(images.length, settings, previewSize),
     [images.length, previewSize, settings]
   );
   const previewDropzones = useMemo(
@@ -628,7 +623,6 @@ export function CollageMaker() {
             helperText={previewHelperText}
             exportFrameNote="Everything inside this frame exports exactly as shown."
             previewCells={previewDropzones}
-            previewFrame={previewFrame}
             previewCornerRadius={settings.fitMode === 'cover' ? settings.cornerRadius : 0}
             previewImageUrls={images.map((image) => image.objectUrl)}
             isInteractive={canPreviewDrag && canBuildCollage && !isBusy}
