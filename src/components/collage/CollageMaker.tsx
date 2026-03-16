@@ -36,6 +36,10 @@ export function CollageMaker() {
       return 'Add at least 2 photos to start building a collage.';
     }
 
+    if (images.length === 1) {
+      return 'Add one more photo to turn this into a collage.';
+    }
+
     return `${images.length} photos ready for your collage.`;
   }, [images.length]);
 
@@ -111,6 +115,15 @@ export function CollageMaker() {
   const handleReset = () => {
     setSettings(DEFAULT_COLLAGE_SETTINGS);
     setStatusMessage('Collage settings reset.');
+  };
+
+  const handleClearPhotos = () => {
+    setImages((current) => {
+      current.forEach((image) => URL.revokeObjectURL(image.objectUrl));
+      return [];
+    });
+    setErrorMessage(null);
+    setStatusMessage('Ready for a new collage.');
   };
 
   const handleRemoveImage = (index: number) => {
@@ -195,7 +208,7 @@ export function CollageMaker() {
           <p className="hero-stat-label">Your collage</p>
           <p className="hero-stat">{imageSummary}</p>
           <p className="helper-text">
-            Start with 2 to 20 photos. Uniform grid and featured layouts are both on the way.
+            Start with 2 to 20 photos. Uniform grid and featured layouts are both ready to use.
           </p>
         </div>
       </section>
@@ -305,6 +318,14 @@ export function CollageMaker() {
                 disabled={!canBuildCollage || isBusy}
               >
                 Save PNG
+              </button>
+              <button
+                type="button"
+                className="ghost-button"
+                onClick={handleClearPhotos}
+                disabled={images.length === 0 || isBusy}
+              >
+                Start a New Collage
               </button>
             </div>
             <p className="helper-text">Collages export at the full preset size in either layout mode.</p>
