@@ -318,7 +318,7 @@ select:disabled {
 
 .preview-desktop-note {
   color: var(--accent-soft);
-  margin-top: -2px;
+  margin-top: 4px;
 }
 
 .preview-shell {
@@ -538,6 +538,34 @@ select:disabled {
   font-weight: 700;
 }
 
+.thumb-main-button {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 72px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 252, 246, 0.88);
+  background: rgba(255, 252, 246, 0.96);
+  color: var(--accent);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.thumb-hover-button {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms ease;
+}
+
+.thumb-card:hover .thumb-hover-button,
+.thumb-card:focus-within .thumb-hover-button,
+.thumb-card.is-selected .thumb-hover-button {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .thumb-card.is-selected {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px rgba(31, 59, 45, 0.12);
@@ -589,34 +617,14 @@ select:disabled {
   white-space: nowrap;
 }
 
-.thumb-actions {
+.thumb-mobile-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+  margin-top: 8px;
 }
 
-.arrange-panel {
-  display: grid;
-  gap: 12px;
-  margin-top: 18px;
-  padding: 14px;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  background: #faf8f3;
-}
-
-.arrange-title {
-  margin: 4px 0 0;
-  font-weight: 700;
-}
-
-.arrange-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.thumb-action-button {
+.thumb-inline-button {
   min-height: 40px;
   border-radius: 12px;
   border: 1px solid var(--border);
@@ -626,12 +634,8 @@ select:disabled {
   font-size: 0.85rem;
 }
 
-.thumb-action-button.is-danger {
+.thumb-inline-button.is-danger {
   color: var(--danger);
-}
-
-.mobile-only-action {
-  display: none;
 }
 
 .layout-choice-group {
@@ -1139,17 +1143,25 @@ select:disabled {
     display: none;
   }
 
-  .mobile-only-action {
-    display: inline-flex;
-  }
-
   .thumb-meta {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .arrange-actions {
-    grid-template-columns: 1fr;
+  .thumb-hover-button {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .thumb-main-button {
+    position: static;
+    margin-top: 6px;
+    width: 100%;
+  }
+
+  .thumb-remove-button {
+    top: 10px;
+    right: 10px;
   }
 
   .site-footer-card,

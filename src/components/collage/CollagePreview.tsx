@@ -15,6 +15,7 @@ interface CollagePreviewProps {
   canBuild: boolean;
   helperText?: string;
   exportFrameNote?: string;
+  showMainPhotoActions?: boolean;
   previewCells?: CollageLayoutCell[];
   previewCornerRadius?: number;
   previewImageUrls?: string[];
@@ -37,6 +38,7 @@ export function CollagePreview({
   canBuild,
   helperText,
   exportFrameNote,
+  showMainPhotoActions = false,
   previewCells = [],
   previewCornerRadius = 0,
   previewImageUrls = [],
@@ -216,9 +218,9 @@ export function CollagePreview({
                       onMouseLeave={() => setHoveredIndex(null)}
                     >
                       <span className="preview-dropzone-label">
-                        {index === 0 ? 'Main photo' : 'Swap here'}
+                        {showMainPhotoActions && index === 0 ? 'Main photo' : 'Drag to swap'}
                       </span>
-                      {index !== 0 ? (
+                      {showMainPhotoActions && index !== 0 ? (
                         <button
                           type="button"
                           className="preview-main-button"
@@ -252,12 +254,8 @@ export function CollagePreview({
       {helperText && canBuild ? (
         <div className="preview-footer">
           <p className="helper-text panel-description panel-description-tight">{helperText}</p>
-          {isInteractive || exportFrameNote ? (
-            <p className="helper-text preview-desktop-note">
-              {isInteractive ? 'Drag a tile to swap photo positions right here in the preview.' : ''}
-              {isInteractive && exportFrameNote ? ' ' : ''}
-              {exportFrameNote ?? ''}
-            </p>
+          {exportFrameNote ? (
+            <p className="helper-text preview-desktop-note">{exportFrameNote}</p>
           ) : null}
         </div>
       ) : null}

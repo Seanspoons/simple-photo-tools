@@ -171,6 +171,7 @@ export function CollageMaker() {
   );
   const usesBalancedLayout =
     settings.featuredSpan === '1x1' && images.length >= 2 && images.length <= 4;
+  const hasMainPhotoLayout = settings.featuredSpan !== '1x1';
   const layoutMetrics = useMemo(
     () => getCollageLayoutMetrics(images.length, settings),
     [images.length, settings]
@@ -228,12 +229,13 @@ export function CollageMaker() {
 
     return { message: null, actions: [] as Array<{ label: string; apply: () => void }> };
   }, [canBuildCollage, layoutMetrics, settings.featuredSpan, settings.sizePreset]);
-  const previewHelperText =
-    settings.featuredSpan === '1x1'
-      ? usesBalancedLayout
-        ? 'Smaller photo sets use a balanced collage layout automatically.'
-        : 'Equal tiles keep every photo the same size.'
-      : 'The first photo becomes the main photo. Use “Use as Main Photo” below to switch it.';
+  const previewHelperText = canPreviewDrag
+    ? hasMainPhotoLayout
+      ? 'Drag tiles to reorder your collage. Hover a tile to make it the main photo.'
+      : 'Drag tiles to reorder your collage.'
+    : hasMainPhotoLayout
+      ? 'Use the photo actions below to reorder your collage or choose the main photo.'
+      : 'Use the photo actions below to reorder your collage.';
 
   useEffect(() => {
     setCanNativeShare('share' in navigator && 'canShare' in navigator);
@@ -627,6 +629,7 @@ export function CollageMaker() {
               canBuild={canBuildCollage}
               helperText={previewHelperText}
               exportFrameNote="Everything inside this frame exports exactly as shown."
+              showMainPhotoActions={hasMainPhotoLayout}
               previewCells={previewDropzones}
               previewCornerRadius={settings.fitMode === 'cover' ? settings.cornerRadius : 0}
               previewImageUrls={images.map((image) => image.objectUrl)}
@@ -676,8 +679,13 @@ export function CollageMaker() {
               </div>
             </div>
             <p className="helper-text panel-description">
-              On desktop, drag photos right in the preview. On mobile, use the buttons below.
-              When you choose a larger layout, the first photo becomes the main photo.
+              {canPreviewDrag
+                ? hasMainPhotoLayout
+                  ? 'Drag tiles in the preview to reorder. Hover a photo card or preview tile to make it the main photo.'
+                  : 'Drag tiles in the preview to reorder. Hover a photo card to remove it.'
+                : hasMainPhotoLayout
+                  ? 'Use the photo actions on each card to reorder, remove, or choose the main photo.'
+                  : 'Use the photo actions on each card to reorder or remove photos.'}
             </p>
             {images.length > 0 ? (
               <>
@@ -704,64 +712,72 @@ export function CollageMaker() {
                       </button>
                       <button
                         type="button"
-                        className="thumb-remove-button"
+                        className="thumb-hover-button thumb-remove-button"
                         onClick={() => handleRemoveImage(index)}
                         disabled={isBusy}
                         aria-label={`Remove ${image.name}`}
                       >
                         ×
                       </button>
+                      {hasMainPhotoLayout && index !== 0 ? (
+                        <button
+                          type="button"
+                          className="thumb-hover-button thumb-main-button"
+                          onClick={() => handleSetFeatured(index)}
+                          disabled={isBusy}
+                        >
+                          Make Main
+                        </button>
+                      ) : null}
                       <div className="thumb-meta">
                         <span className="thumb-order">
-                          {index === 0 ? 'Main photo' : `Photo ${index + 1}`}
+                          {hasMainPhotoLayout && index === 0 ? 'Main photo' : `Photo ${index + 1}`}
                         </span>
-                        <span className="thumb-drag-hint">Choose</span>
+                        <span className="thumb-drag-hint">
+                          {canPreviewDrag ? 'Preview drag' : 'Actions below'}
+                        </span>
                       </div>
                       <p className="thumb-label">{image.name}</p>
+                      {!canPreviewDrag ? (
+                        <div className="thumb-mobile-actions">
+                          {hasMainPhotoLayout && index !== 0 ? (
+                            <button
+                              type="button"
+                              className="thumb-inline-button"
+                              onClick={() => handleSetFeatured(index)}
+                              disabled={isBusy}
+                            >
+                              Make Main
+                            </button>
+                          ) : null}
+                          <button
+                            type="button"
+                            className="thumb-inline-button"
+                            onClick={() => handleMoveImage(index, -1)}
+                            disabled={index === 0 || isBusy}
+                          >
+                            Move Up
+                          </button>
+                          <button
+                            type="button"
+                            className="thumb-inline-button"
+                            onClick={() => handleMoveImage(index, 1)}
+                            disabled={index === images.length - 1 || isBusy}
+                          >
+                            Move Down
+                          </button>
+                          <button
+                            type="button"
+                            className="thumb-inline-button is-danger"
+                            onClick={() => handleRemoveImage(index)}
+                            disabled={isBusy}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ) : null}
                     </div>
                   ))}
-                </div>
-                <div className="arrange-panel" aria-live="polite">
-                  <div>
-                    <p className="eyebrow">Selected photo</p>
-                    <p className="arrange-title">
-                      {images[selectedImageIndex]?.name ?? 'Choose a photo'}
-                    </p>
-                  </div>
-                  <div className="arrange-actions">
-                    <button
-                      type="button"
-                      className="thumb-action-button"
-                      onClick={() => handleSetFeatured(selectedImageIndex)}
-                      disabled={selectedImageIndex === 0 || isBusy}
-                    >
-                      Make Main
-                    </button>
-                    <button
-                      type="button"
-                      className="thumb-action-button mobile-only-action"
-                      onClick={() => handleMoveImage(selectedImageIndex, -1)}
-                      disabled={selectedImageIndex === 0 || isBusy}
-                    >
-                      Move Up
-                    </button>
-                    <button
-                      type="button"
-                      className="thumb-action-button mobile-only-action"
-                      onClick={() => handleMoveImage(selectedImageIndex, 1)}
-                      disabled={selectedImageIndex === images.length - 1 || isBusy}
-                    >
-                      Move Down
-                    </button>
-                    <button
-                      type="button"
-                      className="thumb-action-button is-danger"
-                      onClick={() => handleRemoveImage(selectedImageIndex)}
-                      disabled={isBusy}
-                    >
-                      Remove
-                    </button>
-                  </div>
                 </div>
               </>
             ) : (

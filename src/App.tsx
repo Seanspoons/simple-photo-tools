@@ -72,11 +72,14 @@ export default function App() {
             <div>
               <p className="site-footer-title">Photo Watermarker</p>
               <p className="site-footer-copy">
-                Add a clean text watermark to your photos and save the finished image in seconds.
+                Add clean text watermarks, build simple collages, and save everything right on
+                your device.
               </p>
             </div>
           </div>
-          <p className="site-footer-meta">© 2026 Photo Watermarker. Photos stay on your device.</p>
+          <p className="site-footer-meta">
+            © 2026 Photo Watermarker. Watermarks and collages stay on your device.
+          </p>
         </div>
       </footer>
     </div>
