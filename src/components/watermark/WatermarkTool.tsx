@@ -401,7 +401,7 @@ export function WatermarkTool() {
               </button>
             </div>
 
-            <div className="tip-note" role="note">
+            <div className="tip-note panel-description panel-description-tight" role="note">
               <span className="tip-note-icon" aria-hidden="true">
                 i
               </span>

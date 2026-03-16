@@ -1195,20 +1195,11 @@ select:disabled {
     align-items: flex-start;
   }
 
-  .thumb-hover-button {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .thumb-main-button {
-    position: static;
-    margin-top: 6px;
-    width: 100%;
-  }
-
+  .thumb-hover-button,
+  .thumb-main-button,
   .thumb-remove-button {
-    top: 10px;
-    right: 10px;
+    opacity: 0;
+    pointer-events: none;
   }
 
   .mobile-photo-toolbar {
