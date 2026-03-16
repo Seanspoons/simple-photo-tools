@@ -11,11 +11,11 @@ Live site: `https://photowatermarker.com`
 
 ## Features
 
-- Add text watermarks to local JPEG, PNG, WebP, HEIC, or HEIF images
+- Add text or image watermarks to local JPEG, PNG, WebP, HEIC, or HEIF images
 - Build collages from multiple local photos entirely in the browser
 - Preview watermark and collage changes instantly on scaled preview canvases
 - Export full-resolution JPEG or PNG files with the applied result
-- Choose watermark text, corner, font, color, opacity, size, margin, bold, shadow, and background pill
+- Choose text or logo watermarks, single or proof layouts, expanded positions, opacity, size, spacing, and export type
 - Choose collage output size, spacing, background, fit mode, and featured layout style
 - Reorder collage photos, remove them, or move one to the featured spot
 - Mobile-friendly UI with optional native share support on supported devices
@@ -75,12 +75,22 @@ If you later want to serve the app from the default GitHub Pages repo URL instea
 
 ### Photo Watermarker
 
-The watermark tool is designed for quick text watermarks on a single image. It keeps the workflow simple:
+The watermark tool is designed for quick but flexible single-image watermarking. It keeps the workflow simple:
 
 1. choose a photo
-2. adjust the text and style
-3. preview the result
-4. save the finished image
+2. choose a text or logo watermark
+3. choose a single mark or a repeated proof pattern
+4. adjust the style and placement
+5. preview the result
+6. save the finished image
+
+The watermark maker currently supports:
+
+- Text watermarks with font, color, bold, shadow, and background styling
+- Image/logo watermarks using a locally selected image file
+- Single watermark placement with corners, center positions, and edge spacing
+- Proof-style repeated watermark patterns with adjustable spacing and angle
+- Local draft restore so the current photo and watermark settings survive a refresh
 
 ### Collage Maker
 
@@ -113,7 +123,7 @@ Most browsers do not decode HEIC or HEIF images natively. This app detects `.hei
 - HEIC/HEIF files are converted locally to JPEG when needed.
 - The preview is rendered on a smaller canvas for responsiveness.
 - Export uses a hidden canvas at the original image dimensions or preset collage size to preserve full resolution.
-- Watermark text is positioned with Canvas text measurement and exported with `canvas.toBlob()`.
+- Watermarks are rendered with the Canvas 2D API as either text or image layers, including repeated proof patterns.
 - Collage layouts are generated with simple client-side layout templates rather than a freeform editor.
 
 ## Project structure
@@ -141,7 +151,7 @@ src/
 
 ## Limitations
 
-- The app supports text watermarks only. It does not place image logos.
+- Watermark image uploads are local to the current draft or session and are not bundled into named presets.
 - The collage maker uses guided layouts rather than a full freeform editor.
 - HEIC conversion depends on browser memory limits for very large files.
 - Very large collage image sets can use significant memory on mobile devices.
@@ -153,6 +163,6 @@ src/
 
 - Default JPEG export quality is high (`0.94`).
 - Export keeps the original pixel dimensions and does not resize the image.
-- Last-used watermark settings and export format are saved in `localStorage`.
+- Last-used watermark settings, current drafts, and export format are saved locally in the browser.
 - Custom presets are saved locally in the browser so repeat users can reuse the same setup quickly.
 - Collage output sizes follow preset social-friendly dimensions rather than freeform custom sizes.
