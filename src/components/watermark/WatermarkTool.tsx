@@ -325,15 +325,17 @@ export function WatermarkTool() {
       {errorMessage ? <div className="message error-message">{errorMessage}</div> : null}
       {statusMessage ? <div className="message status-message">{statusMessage}</div> : null}
 
-      <section className="layout-grid">
+      <section className="layout-grid watermark-layout-grid">
         <div className="left-column">
           <UploadPanel onFileSelect={handleFileSelect} disabled={isBusy} fileName={imageAsset?.name} />
-          <PreviewCanvas
-            canvasRef={previewCanvasRef}
-            hasImage={Boolean(imageAsset)}
-            beforeAfterMode={previewMode}
-            dimensions={imageAsset ? { width: imageAsset.width, height: imageAsset.height } : undefined}
-          />
+          <div className="preview-sticky-wrap">
+            <PreviewCanvas
+              canvasRef={previewCanvasRef}
+              hasImage={Boolean(imageAsset)}
+              beforeAfterMode={previewMode}
+              dimensions={imageAsset ? { width: imageAsset.width, height: imageAsset.height } : undefined}
+            />
+          </div>
         </div>
 
         <div className="right-column">

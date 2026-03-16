@@ -27,7 +27,7 @@ export function PreviewCanvas({
         ) : null}
       </div>
 
-      <div className="preview-shell">
+      <div className="preview-shell watermark-preview-shell">
         {hasImage ? (
           <canvas
             ref={canvasRef}
