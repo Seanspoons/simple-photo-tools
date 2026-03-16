@@ -89,6 +89,25 @@ function getRecommendedColumns(imageCount: number): number {
   return 5;
 }
 
+function getRecommendedSettings(
+  imageCount: number,
+  currentSettings: CollageSettings
+): CollageSettings {
+  const nextColumns = getRecommendedColumns(imageCount);
+  const shouldUseHighRes = imageCount >= 10;
+  const shouldFeatureMainPhoto = currentSettings.sizePreset === 'story' || imageCount >= 7;
+
+  return {
+    ...currentSettings,
+    columns: nextColumns,
+    sizePreset: shouldUseHighRes ? 'high-res-square' : currentSettings.sizePreset,
+    featuredSpan:
+      shouldFeatureMainPhoto && currentSettings.featuredSpan === '1x1'
+        ? '2x2'
+        : currentSettings.featuredSpan
+  };
+}
+
 export function CollageMaker() {
   const [images, setImages] = useState<ImageAsset[]>([]);
   const [settings, setSettings] = useState<CollageSettings>(loadStoredCollageSettings);
@@ -298,10 +317,7 @@ export function CollageMaker() {
       const nextImageCount = images.length + loadedImages.length;
 
       setImages((current) => [...current, ...loadedImages]);
-      setSettings((current) => ({
-        ...current,
-        columns: getRecommendedColumns(nextImageCount)
-      }));
+      setSettings((current) => getRecommendedSettings(nextImageCount, current));
       setStatusMessage(`${nextImageCount} photos ready.`);
 
       if (nextFiles.length > roomRemaining) {
@@ -320,6 +336,16 @@ export function CollageMaker() {
     value: CollageSettings[K]
   ) => {
     setSettings((current) => ({ ...current, [key]: value }));
+  };
+
+  const handleAutoArrange = () => {
+    if (images.length === 0) {
+      setStatusMessage('Add photos first, then Auto arrange can help.');
+      return;
+    }
+
+    setSettings((current) => getRecommendedSettings(images.length, current));
+    setStatusMessage('Applied a suggested layout.');
   };
 
   const handleReset = () => {
@@ -545,6 +571,7 @@ export function CollageMaker() {
             onSavePreset={handleSavePreset}
             onApplyPreset={handleApplyPreset}
             onDeletePreset={handleDeletePreset}
+            onAutoArrange={handleAutoArrange}
             onChange={handleSettingsChange}
             onReset={handleReset}
           />

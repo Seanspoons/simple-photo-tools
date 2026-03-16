@@ -43,6 +43,7 @@ interface CollageControlsProps {
   onSavePreset: () => void;
   onApplyPreset: (presetId: string) => void;
   onDeletePreset: (presetId: string) => void;
+  onAutoArrange: () => void;
   onChange: <K extends keyof CollageSettings>(key: K, value: CollageSettings[K]) => void;
   onReset: () => void;
 }
@@ -58,6 +59,7 @@ export function CollageControls({
   onSavePreset,
   onApplyPreset,
   onDeletePreset,
+  onAutoArrange,
   onChange,
   onReset
 }: CollageControlsProps) {
@@ -70,6 +72,11 @@ export function CollageControls({
         </div>
         <button type="button" className="secondary-button" onClick={onReset} disabled={disabled}>
           Reset
+        </button>
+      </div>
+      <div className="panel-actions-row">
+        <button type="button" className="ghost-button" onClick={onAutoArrange} disabled={disabled}>
+          Auto arrange
         </button>
       </div>
 
