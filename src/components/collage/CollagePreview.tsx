@@ -6,7 +6,7 @@ import {
   useRef,
   useState
 } from 'react';
-import { CollageLayoutCell } from '../../utils/collage/renderCollage';
+import { CollageLayoutCell, CollageLayoutFrame } from '../../utils/collage/renderCollage';
 
 interface CollagePreviewProps {
   canvasRef: RefObject<HTMLCanvasElement>;
@@ -16,6 +16,7 @@ interface CollagePreviewProps {
   helperText?: string;
   exportFrameNote?: string;
   previewCells?: CollageLayoutCell[];
+  previewFrame?: CollageLayoutFrame;
   previewImageUrls?: string[];
   isInteractive?: boolean;
   selectedIndex?: number;
@@ -36,6 +37,7 @@ export function CollagePreview({
   helperText,
   exportFrameNote,
   previewCells = [],
+  previewFrame,
   previewImageUrls = [],
   isInteractive = false,
   selectedIndex = 0,
@@ -94,6 +96,23 @@ export function CollagePreview({
     }));
   }, [canvasRef, displaySize.height, displaySize.width, previewCells]);
 
+  const scaledFrame = useMemo(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !previewFrame || displaySize.width === 0 || displaySize.height === 0) {
+      return null;
+    }
+
+    const scaleX = displaySize.width / canvas.width;
+    const scaleY = displaySize.height / canvas.height;
+
+    return {
+      x: previewFrame.x * scaleX,
+      y: previewFrame.y * scaleY,
+      width: previewFrame.width * scaleX,
+      height: previewFrame.height * scaleY
+    };
+  }, [canvasRef, displaySize.height, displaySize.width, previewFrame]);
+
   const handleTileDragStart = (event: DragEvent<HTMLButtonElement>, index: number) => {
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/plain', String(index));
@@ -130,8 +149,17 @@ export function CollagePreview({
           canBuild ? (
             <>
               <canvas ref={canvasRef} className="preview-canvas" aria-label="Collage preview" />
-              {isInteractive && scaledCells.length > 0 ? (
-                <div className="preview-dropzone-layer" aria-hidden="true">
+              {isInteractive && scaledCells.length > 0 && scaledFrame ? (
+                <div
+                  className="preview-dropzone-layer"
+                  aria-hidden="true"
+                  style={{
+                    left: `${scaledFrame.x}px`,
+                    top: `${scaledFrame.y}px`,
+                    width: `${scaledFrame.width}px`,
+                    height: `${scaledFrame.height}px`
+                  }}
+                >
                   {scaledCells.map((cell, index) => (
                     <button
                       key={`${cell.x}-${cell.y}-${index}`}
@@ -144,8 +172,8 @@ export function CollagePreview({
                         hoveredIndex === index && draggedIndex === null ? 'is-hovered' : ''
                       }`}
                       style={{
-                        left: `${cell.x}px`,
-                        top: `${cell.y}px`,
+                        left: `${cell.x - scaledFrame.x}px`,
+                        top: `${cell.y - scaledFrame.y}px`,
                         width: `${cell.width}px`,
                         height: `${cell.height}px`
                       }}

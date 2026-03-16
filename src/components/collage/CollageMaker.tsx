@@ -19,6 +19,7 @@ import {
 import { loadImageAsset } from '../../utils/imageLoader';
 import {
   getCollageLayoutCells,
+  getCollageLayoutFrame,
   getCollageLayoutMetrics,
   getCollageOutputSize,
   renderCollage
@@ -155,6 +156,10 @@ export function CollageMaker() {
   }, [settings]);
   const previewCells = useMemo(
     () => getCollageLayoutCells(images.length, settings, previewSize),
+    [images.length, previewSize, settings]
+  );
+  const previewFrame = useMemo(
+    () => getCollageLayoutFrame(images.length, settings, previewSize),
     [images.length, previewSize, settings]
   );
   const layoutMetrics = useMemo(
@@ -610,6 +615,7 @@ export function CollageMaker() {
             helperText={previewHelperText}
             exportFrameNote="Everything inside this frame exports exactly as shown."
             previewCells={previewCells}
+            previewFrame={previewFrame}
             previewImageUrls={images.map((image) => image.objectUrl)}
             isInteractive={canPreviewDrag && canBuildCollage && !isBusy}
             selectedIndex={selectedImageIndex}

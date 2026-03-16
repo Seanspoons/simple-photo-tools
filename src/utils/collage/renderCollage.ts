@@ -22,6 +22,13 @@ export interface CollageLayoutMetrics {
   gridHeight: number;
 }
 
+export interface CollageLayoutFrame {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 interface GridSlot {
   column: number;
   row: number;
@@ -253,6 +260,35 @@ export function getCollageLayoutCells(
 ): CollageLayoutCell[] {
   const outputSize = sizeOverride ?? getOutputSize(settings);
   return getSquareGridCells(imageCount, outputSize, settings).cells;
+}
+
+export function getCollageLayoutFrame(
+  imageCount: number,
+  settings: CollageSettings,
+  sizeOverride?: CanvasSize
+): CollageLayoutFrame {
+  const outputSize = sizeOverride ?? getOutputSize(settings);
+  const cells = getSquareGridCells(imageCount, outputSize, settings).cells;
+  if (cells.length === 0) {
+    return {
+      x: 0,
+      y: 0,
+      width: outputSize.width,
+      height: outputSize.height
+    };
+  }
+
+  const minX = Math.min(...cells.map((cell) => cell.x));
+  const minY = Math.min(...cells.map((cell) => cell.y));
+  const maxX = Math.max(...cells.map((cell) => cell.x + cell.width));
+  const maxY = Math.max(...cells.map((cell) => cell.y + cell.height));
+
+  return {
+    x: minX,
+    y: minY,
+    width: maxX - minX,
+    height: maxY - minY
+  };
 }
 
 export function renderCollage(
