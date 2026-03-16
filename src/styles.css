@@ -198,12 +198,14 @@ select:disabled {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.9fr);
   gap: 18px;
+  align-items: start;
 }
 
 .left-column,
 .right-column {
   display: grid;
   gap: 20px;
+  align-content: start;
 }
 
 .panel {
@@ -306,6 +308,10 @@ select:disabled {
     10px -10px,
     -10px 0;
   border: 1px solid var(--border);
+}
+
+.preview-panel {
+  align-self: start;
 }
 
 .preview-canvas {
@@ -894,6 +900,13 @@ select:disabled {
   .hero,
   .layout-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 921px) {
+  .preview-panel {
+    position: sticky;
+    top: 20px;
   }
 }
 
