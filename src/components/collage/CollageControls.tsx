@@ -26,30 +26,6 @@ export function CollageControls({
       </div>
 
       <div className="controls-grid">
-        <fieldset className="field field-full layout-choice-group">
-          <legend>Layout mode</legend>
-          <div className="choice-cards">
-            <button
-              type="button"
-              className={`choice-card ${settings.layoutMode === 'uniform' ? 'is-active' : ''}`}
-              onClick={() => onChange('layoutMode', 'uniform')}
-              disabled={disabled}
-            >
-              <strong>Uniform Grid</strong>
-              <span>All photos the same size.</span>
-            </button>
-            <button
-              type="button"
-              className={`choice-card ${settings.layoutMode === 'featured' ? 'is-active' : ''}`}
-              onClick={() => onChange('layoutMode', 'featured')}
-              disabled={disabled}
-            >
-              <strong>Featured Layout</strong>
-              <span>One main photo with supporting images around it.</span>
-            </button>
-          </div>
-        </fieldset>
-
         <label className="field">
           <span>Size</span>
           <select
@@ -64,20 +40,18 @@ export function CollageControls({
           </select>
         </label>
 
-        {settings.layoutMode === 'uniform' ? (
-          <label className="field">
-            <span>Columns ({settings.columns})</span>
-            <input
-              type="range"
-              min="2"
-              max="4"
-              step="1"
-              value={settings.columns}
-              onChange={(event) => onChange('columns', Number(event.target.value))}
-              disabled={disabled}
-            />
-          </label>
-        ) : null}
+        <label className="field">
+          <span>Columns ({settings.columns})</span>
+          <input
+            type="range"
+            min="2"
+            max="5"
+            step="1"
+            value={settings.columns}
+            onChange={(event) => onChange('columns', Number(event.target.value))}
+            disabled={disabled}
+          />
+        </label>
 
         <label className="field">
           <span>Spacing ({settings.gap}px)</span>
@@ -127,40 +101,47 @@ export function CollageControls({
           />
         </label>
 
-        {settings.layoutMode === 'featured' ? (
-          <fieldset className="field field-full layout-choice-group">
-            <legend>Main photo style</legend>
-            <div className="choice-cards">
-              <button
-                type="button"
-                className={`choice-card ${settings.featuredStyle === 'feature-top' ? 'is-active' : ''}`}
-                onClick={() => onChange('featuredStyle', 'feature-top')}
-                disabled={disabled}
-              >
-                <strong>Top Feature</strong>
-                <span>Large photo across the top.</span>
-              </button>
-              <button
-                type="button"
-                className={`choice-card ${settings.featuredStyle === 'feature-left' ? 'is-active' : ''}`}
-                onClick={() => onChange('featuredStyle', 'feature-left')}
-                disabled={disabled}
-              >
-                <strong>Left Feature</strong>
-                <span>Large photo on the left.</span>
-              </button>
-              <button
-                type="button"
-                className={`choice-card ${settings.featuredStyle === 'feature-grid' ? 'is-active' : ''}`}
-                onClick={() => onChange('featuredStyle', 'feature-grid')}
-                disabled={disabled}
-              >
-                <strong>Large 2x2 Photo</strong>
-                <span>Main photo takes the space of 4 smaller tiles.</span>
-              </button>
-            </div>
-          </fieldset>
-        ) : null}
+        <fieldset className="field field-full layout-choice-group">
+          <legend>Main photo size</legend>
+          <div className="choice-cards">
+            <button
+              type="button"
+              className={`choice-card ${settings.featuredSpan === '1x1' ? 'is-active' : ''}`}
+              onClick={() => onChange('featuredSpan', '1x1')}
+              disabled={disabled}
+            >
+              <strong>Normal</strong>
+              <span>All photos use the same square size.</span>
+            </button>
+            <button
+              type="button"
+              className={`choice-card ${settings.featuredSpan === '2x2' ? 'is-active' : ''}`}
+              onClick={() => onChange('featuredSpan', '2x2')}
+              disabled={disabled}
+            >
+              <strong>Large 2x2</strong>
+              <span>Main photo takes the space of 4 square tiles.</span>
+            </button>
+            <button
+              type="button"
+              className={`choice-card ${settings.featuredSpan === '2x1' ? 'is-active' : ''}`}
+              onClick={() => onChange('featuredSpan', '2x1')}
+              disabled={disabled}
+            >
+              <strong>Wide 2x1</strong>
+              <span>Main photo spans 2 tiles across.</span>
+            </button>
+            <button
+              type="button"
+              className={`choice-card ${settings.featuredSpan === '1x2' ? 'is-active' : ''}`}
+              onClick={() => onChange('featuredSpan', '1x2')}
+              disabled={disabled}
+            >
+              <strong>Tall 1x2</strong>
+              <span>Main photo spans 2 tiles tall.</span>
+            </button>
+          </div>
+        </fieldset>
       </div>
     </section>
   );

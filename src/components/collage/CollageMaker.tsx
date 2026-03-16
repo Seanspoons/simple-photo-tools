@@ -16,15 +16,14 @@ import { CollageUploadPanel } from './CollageUploadPanel';
 const MAX_IMAGES = 20;
 
 const DEFAULT_COLLAGE_SETTINGS: CollageSettings = {
-  layoutMode: 'uniform',
   sizePreset: 'instagram-square',
-  columns: 2,
+  columns: 3,
   gap: 12,
   backgroundColor: '#ffffff',
   fitMode: 'cover',
   cornerRadius: 0,
   exportFormat: 'jpeg',
-  featuredStyle: 'feature-top'
+  featuredSpan: '1x1'
 };
 
 export function CollageMaker() {
@@ -53,9 +52,9 @@ export function CollageMaker() {
 
   const canBuildCollage = images.length >= 2;
   const previewHelperText =
-    settings.layoutMode === 'featured'
-      ? 'The first photo becomes the main image. Use “Use as Main Photo” below to switch it.'
-      : 'Uniform Grid keeps all photos evenly balanced.';
+    settings.featuredSpan === '1x1'
+      ? 'Square grid mode keeps all tiles the same size.'
+      : 'The first photo becomes the main photo. Use “Use as Main Photo” below to switch it.';
 
   useEffect(() => {
     setCanNativeShare('share' in navigator && 'canShare' in navigator);
@@ -232,7 +231,7 @@ export function CollageMaker() {
           <p className="hero-stat-label">Your collage</p>
           <p className="hero-stat">{imageSummary}</p>
           <p className="helper-text">
-            Start with 2 to 20 photos. Uniform grid and featured layouts are both ready to use.
+            Start with 2 to 20 photos. Build a square grid, or make the first photo larger than the rest.
           </p>
         </div>
       </section>

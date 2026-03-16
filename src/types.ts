@@ -5,13 +5,13 @@ export type WatermarkPosition =
   | 'bottom-right';
 
 export type ExportFormat = 'jpeg' | 'png';
-export type CollageLayoutMode = 'uniform' | 'featured';
 export type CollageFitMode = 'cover' | 'contain';
 export type CollageSizePreset =
   | 'instagram-square'
   | 'instagram-portrait'
   | 'story'
   | 'high-res-square';
+export type CollageFeaturedSpan = '1x1' | '2x1' | '1x2' | '2x2';
 
 export interface WatermarkSettings {
   text: string;
@@ -53,7 +53,6 @@ export interface RenderWatermarkOptions {
 }
 
 export interface CollageSettings {
-  layoutMode: CollageLayoutMode;
   sizePreset: CollageSizePreset;
   columns: number;
   gap: number;
@@ -61,5 +60,5 @@ export interface CollageSettings {
   fitMode: CollageFitMode;
   cornerRadius: number;
   exportFormat: ExportFormat;
-  featuredStyle: 'feature-top' | 'feature-left' | 'feature-grid';
+  featuredSpan: CollageFeaturedSpan;
 }
