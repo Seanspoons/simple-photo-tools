@@ -293,6 +293,15 @@ select:disabled {
   margin-top: 14px;
 }
 
+.preview-footer {
+  display: grid;
+  gap: 8px;
+}
+
+.preview-desktop-note {
+  color: var(--accent-soft);
+}
+
 .preview-shell {
   position: relative;
   overflow: hidden;
@@ -1019,6 +1028,10 @@ select:disabled {
 
   .thumb-list {
     grid-template-columns: 1fr;
+  }
+
+  .preview-dropzone-layer {
+    display: none;
   }
 
   .thumb-meta {

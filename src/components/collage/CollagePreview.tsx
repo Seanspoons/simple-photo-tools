@@ -90,7 +90,16 @@ export function CollagePreview({
         )}
       </div>
 
-      {helperText && canBuild ? <p className="helper-text section-helper-text">{helperText}</p> : null}
+      {helperText && canBuild ? (
+        <div className="preview-footer">
+          <p className="helper-text section-helper-text">{helperText}</p>
+          {isInteractive ? (
+            <p className="helper-text preview-desktop-note">
+              Drag a tile to swap photo positions right here in the preview.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
     </section>
   );
 }

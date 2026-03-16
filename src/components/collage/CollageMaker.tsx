@@ -650,8 +650,8 @@ export function CollageMaker() {
               </div>
             </div>
             <p className="helper-text section-helper-text">
-              Drag photos into place on desktop, or use the move buttons below. The first photo is
-              your main photo.
+              On desktop, drag photos right in the preview. On mobile, use the move buttons below.
+              The first photo is your main photo.
             </p>
             {images.length > 0 ? (
               <>
