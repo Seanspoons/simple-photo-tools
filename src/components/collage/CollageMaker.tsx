@@ -635,6 +635,7 @@ export function CollageMaker() {
               draggedIndex={draggedIndex}
               dropTargetIndex={dropTargetIndex}
               onTileSelect={setSelectedImageIndex}
+              onMakeMain={handleSetFeatured}
               onTileDragStart={handleDragStart}
               onTileDragEnter={handleDragEnter}
               onTileDrop={handlePreviewDrop}
@@ -682,29 +683,42 @@ export function CollageMaker() {
               <>
                 <div className="thumb-list" role="list" aria-label="Collage photos">
                   {images.map((image, index) => (
-                    <button
+                    <div
                       key={image.objectUrl}
-                      type="button"
                       className={`thumb-card ${selectedImageIndex === index ? 'is-selected' : ''} ${
                         draggedIndex === index ? 'is-dragging' : ''
                       } ${dropTargetIndex === index && draggedIndex !== index ? 'is-drop-target' : ''}`}
-                      draggable={!isBusy}
-                      onClick={() => setSelectedImageIndex(index)}
-                      onDragStart={() => handleDragStart(index)}
-                      onDragEnter={() => handleDragEnter(index)}
-                      onDragOver={(event) => event.preventDefault()}
-                      onDrop={() => handleDrop(index)}
-                      onDragEnd={handleDragEnd}
                     >
-                      <img src={image.objectUrl} alt={image.name} className="thumb-image" />
+                      <button
+                        type="button"
+                        className="thumb-select-button"
+                        draggable={!isBusy}
+                        onClick={() => setSelectedImageIndex(index)}
+                        onDragStart={() => handleDragStart(index)}
+                        onDragEnter={() => handleDragEnter(index)}
+                        onDragOver={(event) => event.preventDefault()}
+                        onDrop={() => handleDrop(index)}
+                        onDragEnd={handleDragEnd}
+                      >
+                        <img src={image.objectUrl} alt={image.name} className="thumb-image" />
+                      </button>
+                      <button
+                        type="button"
+                        className="thumb-remove-button"
+                        onClick={() => handleRemoveImage(index)}
+                        disabled={isBusy}
+                        aria-label={`Remove ${image.name}`}
+                      >
+                        ×
+                      </button>
                       <div className="thumb-meta">
                         <span className="thumb-order">
                           {index === 0 ? 'Main photo' : `Photo ${index + 1}`}
                         </span>
-                        <span className="thumb-drag-hint">Drag to reorder</span>
+                        <span className="thumb-drag-hint">Choose</span>
                       </div>
                       <p className="thumb-label">{image.name}</p>
-                    </button>
+                    </div>
                   ))}
                 </div>
                 <div className="arrange-panel" aria-live="polite">
@@ -718,26 +732,26 @@ export function CollageMaker() {
                     <button
                       type="button"
                       className="thumb-action-button"
-                      onClick={() => handleMoveImage(selectedImageIndex, -1)}
-                      disabled={selectedImageIndex === 0 || isBusy}
-                    >
-                      Move Left
-                    </button>
-                    <button
-                      type="button"
-                      className="thumb-action-button"
-                      onClick={() => handleMoveImage(selectedImageIndex, 1)}
-                      disabled={selectedImageIndex === images.length - 1 || isBusy}
-                    >
-                      Move Right
-                    </button>
-                    <button
-                      type="button"
-                      className="thumb-action-button"
                       onClick={() => handleSetFeatured(selectedImageIndex)}
                       disabled={selectedImageIndex === 0 || isBusy}
                     >
                       Make Main
+                    </button>
+                    <button
+                      type="button"
+                      className="thumb-action-button mobile-only-action"
+                      onClick={() => handleMoveImage(selectedImageIndex, -1)}
+                      disabled={selectedImageIndex === 0 || isBusy}
+                    >
+                      Move Up
+                    </button>
+                    <button
+                      type="button"
+                      className="thumb-action-button mobile-only-action"
+                      onClick={() => handleMoveImage(selectedImageIndex, 1)}
+                      disabled={selectedImageIndex === images.length - 1 || isBusy}
+                    >
+                      Move Down
                     </button>
                     <button
                       type="button"

@@ -418,6 +418,28 @@ select:disabled {
   opacity: 1;
 }
 
+.preview-main-button {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 252, 246, 0.88);
+  background: rgba(255, 252, 246, 0.94);
+  color: var(--accent);
+  font-size: 0.76rem;
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+
+.preview-dropzone:hover .preview-main-button,
+.preview-dropzone.is-hovered .preview-main-button,
+.preview-dropzone.is-drop-target .preview-main-button {
+  opacity: 1;
+}
+
 @keyframes preview-drop-pulse {
   0%,
   100% {
@@ -483,12 +505,37 @@ select:disabled {
   border-radius: 18px;
   border: 1px solid var(--border);
   background: #fdfbf6;
-  appearance: none;
-  width: 100%;
+  position: relative;
   transition:
     border-color 140ms ease,
     transform 140ms ease,
     box-shadow 140ms ease;
+}
+
+.thumb-select-button {
+  appearance: none;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.thumb-remove-button {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 252, 246, 0.88);
+  background: rgba(255, 252, 246, 0.96);
+  color: var(--danger);
+  font-size: 1.05rem;
+  line-height: 1;
+  font-weight: 700;
 }
 
 .thumb-card.is-selected {
@@ -581,6 +628,10 @@ select:disabled {
 
 .thumb-action-button.is-danger {
   color: var(--danger);
+}
+
+.mobile-only-action {
+  display: none;
 }
 
 .layout-choice-group {
@@ -1086,6 +1137,10 @@ select:disabled {
 
   .preview-dropzone-layer {
     display: none;
+  }
+
+  .mobile-only-action {
+    display: inline-flex;
   }
 
   .thumb-meta {

@@ -23,6 +23,7 @@ interface CollagePreviewProps {
   draggedIndex?: number | null;
   dropTargetIndex?: number | null;
   onTileSelect?: (index: number) => void;
+  onMakeMain?: (index: number) => void;
   onTileDragStart?: (index: number) => void;
   onTileDragEnter?: (index: number) => void;
   onTileDrop?: (index: number) => void;
@@ -44,6 +45,7 @@ export function CollagePreview({
   draggedIndex = null,
   dropTargetIndex = null,
   onTileSelect,
+  onMakeMain,
   onTileDragStart,
   onTileDragEnter,
   onTileDrop,
@@ -216,6 +218,20 @@ export function CollagePreview({
                       <span className="preview-dropzone-label">
                         {index === 0 ? 'Main photo' : 'Swap here'}
                       </span>
+                      {index !== 0 ? (
+                        <button
+                          type="button"
+                          className="preview-main-button"
+                          tabIndex={-1}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            onMakeMain?.(index);
+                          }}
+                        >
+                          Make Main
+                        </button>
+                      ) : null}
                     </button>
                   ))}
                 </div>
