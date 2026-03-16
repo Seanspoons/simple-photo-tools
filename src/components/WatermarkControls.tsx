@@ -62,6 +62,10 @@ function parseRangeValue(event: ChangeEvent<HTMLInputElement>): number {
   return Number(event.target.value);
 }
 
+function usesEdgeMargin(position: WatermarkPosition): boolean {
+  return position !== 'center';
+}
+
 export function WatermarkControls({
   settings,
   beforeAfterMode,
@@ -326,18 +330,20 @@ export function WatermarkControls({
               </div>
             </fieldset>
 
-            <label className="field">
-              <span>Distance from edge ({settings.margin}%)</span>
-              <input
-                type="range"
-                min="1"
-                max="10"
-                step="0.5"
-                value={settings.margin}
-                onChange={(event) => onSettingChange('margin', parseRangeValue(event))}
-                disabled={disabled}
-              />
-            </label>
+            {usesEdgeMargin(settings.position) ? (
+              <label className="field">
+                <span>Distance from edge ({settings.margin}%)</span>
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  step="0.5"
+                  value={settings.margin}
+                  onChange={(event) => onSettingChange('margin', parseRangeValue(event))}
+                  disabled={disabled}
+                />
+              </label>
+            ) : null}
           </>
         ) : (
           <>
