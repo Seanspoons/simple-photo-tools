@@ -311,9 +311,14 @@ export function WatermarkTool() {
         <div className="hero-card">
           <p className="hero-stat-label">Selected photo</p>
           <p className="hero-stat">{imageSummary}</p>
-          <p className="helper-text">
-            Your photo stays on this device. Save a favorite look once and use it again anytime.
-          </p>
+          <div className="tip-note" role="note">
+            <span className="tip-note-icon" aria-hidden="true">
+              i
+            </span>
+            <p className="helper-text">
+              Your photo stays on this device. Save a favorite look once and use it again anytime.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -394,7 +399,12 @@ export function WatermarkTool() {
               </button>
             </div>
 
-            <p className="helper-text">Saved photos keep the original image size.</p>
+            <div className="tip-note" role="note">
+              <span className="tip-note-icon" aria-hidden="true">
+                i
+              </span>
+              <p className="helper-text">Saved photos keep the original image size.</p>
+            </div>
           </section>
         </div>
       </section>

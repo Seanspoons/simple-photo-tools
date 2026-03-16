@@ -605,8 +605,8 @@ export function CollageMaker() {
           <p className="hero-stat-label">Your collage</p>
           <p className="hero-stat">{imageSummary}</p>
           <p className="helper-text">
-            Add 2 to 20 photos. Smaller sets get a balanced layout automatically, and larger sets
-            can use equal tiles or a larger main photo.
+            Add 2 to {MAX_COLLAGE_IMAGES} photos. Smaller sets stay balanced automatically, and
+            larger sets can use equal tiles or a larger main photo.
           </p>
         </div>
       </section>
@@ -684,8 +684,8 @@ export function CollageMaker() {
                   ? 'Drag tiles in the preview to reorder. Hover a photo card or preview tile to make it the main photo.'
                   : 'Drag tiles in the preview to reorder. Hover a photo card to remove it.'
                 : hasMainPhotoLayout
-                  ? 'Use the photo actions on each card to reorder, remove, or choose the main photo.'
-                  : 'Use the photo actions on each card to reorder or remove photos.'}
+                  ? 'Choose a photo, then use the actions below to reorder it, remove it, or make it the main photo.'
+                  : 'Choose a photo, then use the actions below to reorder it or remove it.'}
             </p>
             {images.length > 0 ? (
               <>
@@ -738,47 +738,52 @@ export function CollageMaker() {
                         </span>
                       </div>
                       <p className="thumb-label">{image.name}</p>
-                      {!canPreviewDrag ? (
-                        <div className="thumb-mobile-actions">
-                          {hasMainPhotoLayout && index !== 0 ? (
-                            <button
-                              type="button"
-                              className="thumb-inline-button"
-                              onClick={() => handleSetFeatured(index)}
-                              disabled={isBusy}
-                            >
-                              Make Main
-                            </button>
-                          ) : null}
-                          <button
-                            type="button"
-                            className="thumb-inline-button"
-                            onClick={() => handleMoveImage(index, -1)}
-                            disabled={index === 0 || isBusy}
-                          >
-                            Move Up
-                          </button>
-                          <button
-                            type="button"
-                            className="thumb-inline-button"
-                            onClick={() => handleMoveImage(index, 1)}
-                            disabled={index === images.length - 1 || isBusy}
-                          >
-                            Move Down
-                          </button>
-                          <button
-                            type="button"
-                            className="thumb-inline-button is-danger"
-                            onClick={() => handleRemoveImage(index)}
-                            disabled={isBusy}
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      ) : null}
                     </div>
                   ))}
                 </div>
+                {!canPreviewDrag && images[selectedImageIndex] ? (
+                  <div className="mobile-photo-toolbar" aria-live="polite">
+                    <p className="mobile-photo-toolbar-title">
+                      {images[selectedImageIndex].name}
+                    </p>
+                    <div className="mobile-photo-toolbar-actions">
+                      {hasMainPhotoLayout && selectedImageIndex !== 0 ? (
+                        <button
+                          type="button"
+                          className="thumb-inline-button"
+                          onClick={() => handleSetFeatured(selectedImageIndex)}
+                          disabled={isBusy}
+                        >
+                          Make Main
+                        </button>
+                      ) : null}
+                      <button
+                        type="button"
+                        className="thumb-inline-button"
+                        onClick={() => handleMoveImage(selectedImageIndex, -1)}
+                        disabled={selectedImageIndex === 0 || isBusy}
+                      >
+                        Move Up
+                      </button>
+                      <button
+                        type="button"
+                        className="thumb-inline-button"
+                        onClick={() => handleMoveImage(selectedImageIndex, 1)}
+                        disabled={selectedImageIndex === images.length - 1 || isBusy}
+                      >
+                        Move Down
+                      </button>
+                      <button
+                        type="button"
+                        className="thumb-inline-button is-danger"
+                        onClick={() => handleRemoveImage(selectedImageIndex)}
+                        disabled={isBusy}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
               </>
             ) : (
               <p className="helper-text panel-description">Add a few photos and they will appear here.</p>
@@ -828,9 +833,12 @@ export function CollageMaker() {
                 Start a New Collage
               </button>
             </div>
-            <p className="helper-text panel-description panel-description-tight">
-              Collages export at the full preset size in either layout mode.
-            </p>
+            <div className="tip-note panel-description panel-description-tight" role="note">
+              <span className="tip-note-icon" aria-hidden="true">
+                i
+              </span>
+              <p className="helper-text">Collages export at the full preset size in either layout mode.</p>
+            </div>
           </section>
         </div>
       </section>

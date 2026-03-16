@@ -124,9 +124,14 @@ export function CollageControls({
               <p className="helper-text">No saved collage looks yet.</p>
             )}
           </div>
-          <p className="helper-text">
-            Each saved look keeps your collage size, spacing, background, and main photo size.
-          </p>
+          <div className="tip-note" role="note">
+            <span className="tip-note-icon" aria-hidden="true">
+              i
+            </span>
+            <p className="helper-text">
+              Each saved look keeps your collage size, spacing, background, and main photo size.
+            </p>
+          </div>
         </div>
 
         <div className="field field-full collage-summary">
@@ -338,9 +343,14 @@ export function CollageControls({
               </span>
             </button>
           </div>
-          <p className="helper-text">
-            Tip: the first photo becomes the main photo whenever you choose a larger layout.
-          </p>
+          <div className="tip-note" role="note">
+            <span className="tip-note-icon" aria-hidden="true">
+              i
+            </span>
+            <p className="helper-text">
+              The first photo becomes the main photo whenever you choose a larger layout.
+            </p>
+          </div>
         </fieldset>
       </div>
     </section>

@@ -99,7 +99,7 @@ The collage maker currently supports:
 - Featured layouts where the first image is given more visual weight
 - Social-friendly output presets such as square, portrait, and story sizes
 - Mixed portrait, landscape, and square photos
-- Up to 20 photos per collage
+- Up to 25 photos per collage
 
 Odd image counts are handled with balanced final rows and guided layouts rather than leaving awkward empty holes.
 

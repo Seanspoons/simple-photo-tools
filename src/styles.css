@@ -321,6 +321,26 @@ select:disabled {
   margin-top: 4px;
 }
 
+.tip-note {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 10px;
+}
+
+.tip-note-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #f5ebd8;
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .preview-shell {
   position: relative;
   overflow: hidden;
@@ -617,13 +637,6 @@ select:disabled {
   white-space: nowrap;
 }
 
-.thumb-mobile-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 8px;
-}
-
 .thumb-inline-button {
   min-height: 40px;
   border-radius: 12px;
@@ -636,6 +649,16 @@ select:disabled {
 
 .thumb-inline-button.is-danger {
   color: var(--danger);
+}
+
+.mobile-photo-toolbar {
+  display: none;
+}
+
+.mobile-photo-toolbar-title {
+  margin: 0;
+  font-weight: 700;
+  color: var(--accent);
 }
 
 .layout-choice-group {
@@ -1162,6 +1185,22 @@ select:disabled {
   .thumb-remove-button {
     top: 10px;
     right: 10px;
+  }
+
+  .mobile-photo-toolbar {
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+    padding: 14px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: #faf8f3;
+  }
+
+  .mobile-photo-toolbar-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .site-footer-card,

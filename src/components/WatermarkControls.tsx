@@ -100,9 +100,14 @@ export function WatermarkControls({
               <p className="helper-text">No saved looks yet.</p>
             )}
           </div>
-          <p className="helper-text">
-            Each saved look keeps your watermark text, style, position, and file type together.
-          </p>
+          <div className="tip-note" role="note">
+            <span className="tip-note-icon" aria-hidden="true">
+              i
+            </span>
+            <p className="helper-text">
+              Each saved look keeps your watermark text, style, position, and file type together.
+            </p>
+          </div>
         </div>
 
         <label className="field field-full">

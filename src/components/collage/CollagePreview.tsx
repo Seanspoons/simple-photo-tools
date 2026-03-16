@@ -253,9 +253,19 @@ export function CollagePreview({
 
       {helperText && canBuild ? (
         <div className="preview-footer">
-          <p className="helper-text panel-description panel-description-tight">{helperText}</p>
+          <div className="tip-note panel-description panel-description-tight" role="note">
+            <span className="tip-note-icon" aria-hidden="true">
+              i
+            </span>
+            <p className="helper-text">{helperText}</p>
+          </div>
           {exportFrameNote ? (
-            <p className="helper-text preview-desktop-note">{exportFrameNote}</p>
+            <div className="tip-note preview-desktop-note" role="note">
+              <span className="tip-note-icon" aria-hidden="true">
+                i
+              </span>
+              <p className="helper-text">{exportFrameNote}</p>
+            </div>
           ) : null}
         </div>
       ) : null}
