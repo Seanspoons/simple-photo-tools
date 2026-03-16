@@ -436,6 +436,18 @@ select:disabled {
   object-fit: contain;
 }
 
+.collage-preview-shell {
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+.collage-preview-canvas {
+  width: auto;
+  max-width: 100%;
+}
+
 .preview-canvas.is-hidden {
   display: none;
 }

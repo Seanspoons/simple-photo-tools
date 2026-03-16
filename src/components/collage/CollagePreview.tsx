@@ -17,6 +17,7 @@ interface CollagePreviewProps {
   exportFrameNote?: string;
   previewCells?: CollageLayoutCell[];
   previewFrame?: CollageLayoutFrame;
+  previewCornerRadius?: number;
   previewImageUrls?: string[];
   isInteractive?: boolean;
   selectedIndex?: number;
@@ -38,6 +39,7 @@ export function CollagePreview({
   exportFrameNote,
   previewCells = [],
   previewFrame,
+  previewCornerRadius = 0,
   previewImageUrls = [],
   isInteractive = false,
   selectedIndex = 0,
@@ -88,13 +90,16 @@ export function CollagePreview({
     const scaleX = displaySize.width / canvas.width;
     const scaleY = displaySize.height / canvas.height;
 
+    const scale = Math.min(scaleX, scaleY);
+
     return previewCells.map((cell) => ({
       x: cell.x * scaleX,
       y: cell.y * scaleY,
       width: cell.width * scaleX,
-      height: cell.height * scaleY
+      height: cell.height * scaleY,
+      borderRadius: previewCornerRadius * scale
     }));
-  }, [canvasRef, displaySize.height, displaySize.width, previewCells]);
+  }, [canvasRef, displaySize.height, displaySize.width, previewCells, previewCornerRadius]);
 
   const scaledFrame = useMemo(() => {
     const canvas = canvasRef.current;
@@ -144,20 +149,24 @@ export function CollagePreview({
         {hasImages ? <span className="dimension-badge">{imageCount} photos</span> : null}
       </div>
 
-      <div ref={shellRef} className="preview-shell">
+      <div ref={shellRef} className="preview-shell collage-preview-shell">
         {hasImages ? (
           canBuild ? (
             <>
-              <canvas ref={canvasRef} className="preview-canvas" aria-label="Collage preview" />
+              <canvas
+                ref={canvasRef}
+                className="preview-canvas collage-preview-canvas"
+                aria-label="Collage preview"
+              />
               {isInteractive && scaledCells.length > 0 && scaledFrame ? (
                 <div
                   className="preview-dropzone-layer"
                   aria-hidden="true"
                   style={{
-                    left: `${scaledFrame.x}px`,
-                    top: `${scaledFrame.y}px`,
-                    width: `${scaledFrame.width}px`,
-                    height: `${scaledFrame.height}px`
+                    left: '0px',
+                    top: '0px',
+                    width: `${displaySize.width}px`,
+                    height: `${displaySize.height}px`
                   }}
                 >
                   {scaledCells.map((cell, index) => (
@@ -172,10 +181,11 @@ export function CollagePreview({
                         hoveredIndex === index && draggedIndex === null ? 'is-hovered' : ''
                       }`}
                       style={{
-                        left: `${cell.x - scaledFrame.x}px`,
-                        top: `${cell.y - scaledFrame.y}px`,
+                        left: `${cell.x}px`,
+                        top: `${cell.y}px`,
                         width: `${cell.width}px`,
-                        height: `${cell.height}px`
+                        height: `${cell.height}px`,
+                        borderRadius: `${cell.borderRadius}px`
                       }}
                       draggable
                       tabIndex={-1}

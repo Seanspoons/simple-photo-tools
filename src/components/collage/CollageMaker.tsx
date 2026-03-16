@@ -22,6 +22,7 @@ import {
   getCollageLayoutFrame,
   getCollageLayoutMetrics,
   getCollageOutputSize,
+  getRenderedImageRect,
   renderCollage
 } from '../../utils/collage/renderCollage';
 import { CollageControls } from './CollageControls';
@@ -161,6 +162,18 @@ export function CollageMaker() {
   const previewFrame = useMemo(
     () => getCollageLayoutFrame(images.length, settings, previewSize),
     [images.length, previewSize, settings]
+  );
+  const previewDropzones = useMemo(
+    () =>
+      previewCells.map((cell, index) => {
+        const image = images[index];
+        if (!image) {
+          return cell;
+        }
+
+        return getRenderedImageRect(cell, image.width, image.height, settings.fitMode);
+      }),
+    [images, previewCells, settings.fitMode]
   );
   const layoutMetrics = useMemo(
     () => getCollageLayoutMetrics(images.length, settings),
@@ -614,8 +627,9 @@ export function CollageMaker() {
             canBuild={canBuildCollage}
             helperText={previewHelperText}
             exportFrameNote="Everything inside this frame exports exactly as shown."
-            previewCells={previewCells}
+            previewCells={previewDropzones}
             previewFrame={previewFrame}
+            previewCornerRadius={settings.fitMode === 'cover' ? settings.cornerRadius : 0}
             previewImageUrls={images.map((image) => image.objectUrl)}
             isInteractive={canPreviewDrag && canBuildCollage && !isBusy}
             selectedIndex={selectedImageIndex}

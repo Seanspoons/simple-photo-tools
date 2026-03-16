@@ -12,6 +12,13 @@ export interface CollageLayoutCell {
   height: number;
 }
 
+export interface CollageRenderedRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface CollageLayoutMetrics {
   outputWidth: number;
   outputHeight: number;
@@ -238,6 +245,45 @@ function drawImageToRect(
   }
 
   context.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
+}
+
+export function getRenderedImageRect(
+  cell: CollageLayoutCell,
+  imageWidth: number,
+  imageHeight: number,
+  fitMode: CollageFitMode
+): CollageRenderedRect {
+  const imageRatio = imageWidth / imageHeight;
+  const rectRatio = cell.width / cell.height;
+
+  let drawWidth = cell.width;
+  let drawHeight = cell.height;
+  let offsetX = cell.x;
+  let offsetY = cell.y;
+
+  if (fitMode === 'cover') {
+    return {
+      x: cell.x,
+      y: cell.y,
+      width: cell.width,
+      height: cell.height
+    };
+  }
+
+  if (imageRatio > rectRatio) {
+    drawHeight = cell.width / imageRatio;
+    offsetY = cell.y + (cell.height - drawHeight) / 2;
+  } else {
+    drawWidth = cell.height * imageRatio;
+    offsetX = cell.x + (cell.width - drawWidth) / 2;
+  }
+
+  return {
+    x: offsetX,
+    y: offsetY,
+    width: drawWidth,
+    height: drawHeight
+  };
 }
 
 export function getCollageOutputSize(settings: CollageSettings): CanvasSize {
