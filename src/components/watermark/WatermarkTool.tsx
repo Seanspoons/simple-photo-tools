@@ -17,7 +17,14 @@ import {
 } from '../../utils/exportImage';
 import { loadImageAsset } from '../../utils/imageLoader';
 import { renderWatermarkedImage } from '../../utils/renderWatermark';
+import {
+  clearWatermarkDraft,
+  loadWatermarkDraft,
+  saveWatermarkDraft
+} from '../../utils/watermark/draftStorage';
 import { ExportFormat, ImageAsset, SavedPreset, WatermarkSettings } from '../../types';
+
+type WatermarkConfirmAction = 'clear' | 'reset' | null;
 
 function loadStoredSettings(): WatermarkSettings {
   if (typeof window === 'undefined') {
@@ -81,7 +88,8 @@ export function WatermarkTool() {
   const [previewMode, setPreviewMode] = useState<'after' | 'before'>('after');
   const [isBusy, setIsBusy] = useState(false);
   const [canNativeShare, setCanNativeShare] = useState(false);
-  const [showClearModal, setShowClearModal] = useState(false);
+  const [hasLoadedDraft, setHasLoadedDraft] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<WatermarkConfirmAction>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -102,6 +110,53 @@ export function WatermarkTool() {
   useEffect(() => {
     window.localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(savedPresets));
   }, [savedPresets]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function restoreDraft() {
+      try {
+        const draft = await loadWatermarkDraft();
+        if (!draft || isCancelled) {
+          setHasLoadedDraft(true);
+          return;
+        }
+
+        const restoredAsset = draft.file ? await loadImageAsset(draft.file) : null;
+        if (isCancelled) {
+          if (restoredAsset) {
+            URL.revokeObjectURL(restoredAsset.objectUrl);
+          }
+          return;
+        }
+
+        setSettings(draft.settings);
+        setExportFormat(draft.exportFormat);
+        setPreviewMode(draft.previewMode);
+        setImageAsset((current) => {
+          if (current?.objectUrl) {
+            URL.revokeObjectURL(current.objectUrl);
+          }
+          return restoredAsset;
+        });
+        setStatusMessage(restoredAsset ? 'Restored your last watermark.' : null);
+      } catch {
+        if (!isCancelled) {
+          setErrorMessage('Your last watermark could not be restored.');
+        }
+      } finally {
+        if (!isCancelled) {
+          setHasLoadedDraft(true);
+        }
+      }
+    }
+
+    void restoreDraft();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!imageAsset || !previewCanvasRef.current) {
@@ -139,6 +194,14 @@ export function WatermarkTool() {
       }
     };
   }, [imageAsset]);
+
+  useEffect(() => {
+    if (!hasLoadedDraft) {
+      return;
+    }
+
+    void saveWatermarkDraft(settings, exportFormat, previewMode, imageAsset?.file ?? null);
+  }, [exportFormat, hasLoadedDraft, imageAsset, previewMode, settings]);
 
   const imageSummary = useMemo(() => {
     if (!imageAsset) {
@@ -182,6 +245,7 @@ export function WatermarkTool() {
   const handleReset = () => {
     setSettings(DEFAULT_SETTINGS);
     setExportFormat('jpeg');
+    setPreviewMode('after');
     setStatusMessage('Settings reset.');
   };
 
@@ -237,9 +301,15 @@ export function WatermarkTool() {
       return null;
     });
     setPreviewMode('after');
+    void clearWatermarkDraft();
     setErrorMessage(null);
     setStatusMessage('Ready for another photo.');
-    setShowClearModal(false);
+    setConfirmAction(null);
+  };
+
+  const handleConfirmReset = () => {
+    handleReset();
+    setConfirmAction(null);
   };
 
   const runExport = async (format: ExportFormat, action: 'download' | 'share') => {
@@ -353,7 +423,7 @@ export function WatermarkTool() {
             onSavePreset={handleSavePreset}
             onApplyPreset={handleApplyPreset}
             onDeletePreset={handleDeletePreset}
-            onReset={handleReset}
+            onReset={() => setConfirmAction('reset')}
           />
 
           <section className="panel">
@@ -391,13 +461,13 @@ export function WatermarkTool() {
                   Share / Save to Photos
                 </button>
               ) : null}
-              <button
-                type="button"
-                className="ghost-button"
-                onClick={() => setShowClearModal(true)}
-                disabled={!imageAsset || isBusy}
-              >
-                Start a New Watermark
+                <button
+                  type="button"
+                  className="ghost-button"
+                  onClick={() => setConfirmAction('clear')}
+                  disabled={!imageAsset || isBusy}
+                >
+                  Start a New Watermark
               </button>
             </div>
 
@@ -413,12 +483,16 @@ export function WatermarkTool() {
 
       <canvas ref={exportCanvasRef} className="sr-only" aria-hidden="true" />
       <ConfirmModal
-        open={showClearModal}
-        title="Start a new watermark?"
-        message="This will remove the current photo and preview. Your saved looks and current text settings will stay."
-        confirmLabel="Start New Watermark"
-        onConfirm={handleChooseAnotherPhoto}
-        onCancel={() => setShowClearModal(false)}
+        open={confirmAction !== null}
+        title={confirmAction === 'reset' ? 'Reset this watermark?' : 'Start a new watermark?'}
+        message={
+          confirmAction === 'reset'
+            ? 'This will reset your current watermark settings back to the defaults. Your photo and saved looks will stay.'
+            : 'This will remove the current photo and preview. Your saved looks and current text settings will stay.'
+        }
+        confirmLabel={confirmAction === 'reset' ? 'Reset Watermark' : 'Start New Watermark'}
+        onConfirm={confirmAction === 'reset' ? handleConfirmReset : handleChooseAnotherPhoto}
+        onCancel={() => setConfirmAction(null)}
       />
     </>
   );

@@ -29,6 +29,8 @@ import { CollageControls } from './CollageControls';
 import { CollagePreview } from './CollagePreview';
 import { CollageUploadPanel } from './CollageUploadPanel';
 
+type CollageConfirmAction = 'clear' | 'reset' | null;
+
 const DEFAULT_COLLAGE_SETTINGS: CollageSettings = {
   sizePreset: 'instagram-square',
   columns: 3,
@@ -119,7 +121,7 @@ export function CollageMaker() {
   const [isBusy, setIsBusy] = useState(false);
   const [canNativeShare, setCanNativeShare] = useState(false);
   const [hasLoadedDraft, setHasLoadedDraft] = useState(false);
-  const [showClearModal, setShowClearModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<CollageConfirmAction>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
@@ -448,7 +450,12 @@ export function CollageMaker() {
     void clearCollageDraft();
     setErrorMessage(null);
     setStatusMessage('Ready for a new collage.');
-    setShowClearModal(false);
+    setConfirmAction(null);
+  };
+
+  const handleConfirmReset = () => {
+    handleReset();
+    setConfirmAction(null);
   };
 
   const handleRemoveImage = (index: number) => {
@@ -668,7 +675,7 @@ export function CollageMaker() {
             onDeletePreset={handleDeletePreset}
             onAutoArrange={handleAutoArrange}
             onChange={handleSettingsChange}
-            onReset={handleReset}
+            onReset={() => setConfirmAction('reset')}
           />
 
           <section className="panel">
@@ -827,7 +834,7 @@ export function CollageMaker() {
               <button
                 type="button"
                 className="ghost-button"
-                onClick={() => setShowClearModal(true)}
+                onClick={() => setConfirmAction('clear')}
                 disabled={images.length === 0 || isBusy}
               >
                 Start a New Collage
@@ -845,12 +852,16 @@ export function CollageMaker() {
 
       <canvas ref={exportCanvasRef} className="sr-only" aria-hidden="true" />
       <ConfirmModal
-        open={showClearModal}
-        title="Start a new collage?"
-        message="This will remove the current collage photos and preview. Your collage layout settings will stay."
-        confirmLabel="Start New Collage"
-        onConfirm={handleClearPhotos}
-        onCancel={() => setShowClearModal(false)}
+        open={confirmAction !== null}
+        title={confirmAction === 'reset' ? 'Reset this collage?' : 'Start a new collage?'}
+        message={
+          confirmAction === 'reset'
+            ? 'This will reset your current collage settings back to the defaults. Your photos and saved looks will stay.'
+            : 'This will remove the current collage photos and preview. Your collage layout settings will stay.'
+        }
+        confirmLabel={confirmAction === 'reset' ? 'Reset Collage' : 'Start New Collage'}
+        onConfirm={confirmAction === 'reset' ? handleConfirmReset : handleClearPhotos}
+        onCancel={() => setConfirmAction(null)}
       />
     </>
   );
