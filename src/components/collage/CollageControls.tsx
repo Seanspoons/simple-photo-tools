@@ -26,17 +26,29 @@ export function CollageControls({
       </div>
 
       <div className="controls-grid">
-        <label className="field">
-          <span>Layout mode</span>
-          <select
-            value={settings.layoutMode}
-            onChange={(event) => onChange('layoutMode', event.target.value as CollageSettings['layoutMode'])}
-            disabled={disabled}
-          >
-            <option value="uniform">Uniform Grid</option>
-            <option value="featured">Featured Layout</option>
-          </select>
-        </label>
+        <fieldset className="field field-full layout-choice-group">
+          <legend>Layout mode</legend>
+          <div className="choice-cards">
+            <button
+              type="button"
+              className={`choice-card ${settings.layoutMode === 'uniform' ? 'is-active' : ''}`}
+              onClick={() => onChange('layoutMode', 'uniform')}
+              disabled={disabled}
+            >
+              <strong>Uniform Grid</strong>
+              <span>All photos the same size.</span>
+            </button>
+            <button
+              type="button"
+              className={`choice-card ${settings.layoutMode === 'featured' ? 'is-active' : ''}`}
+              onClick={() => onChange('layoutMode', 'featured')}
+              disabled={disabled}
+            >
+              <strong>Featured Layout</strong>
+              <span>One main photo with supporting images around it.</span>
+            </button>
+          </div>
+        </fieldset>
 
         <label className="field">
           <span>Size</span>
@@ -52,18 +64,20 @@ export function CollageControls({
           </select>
         </label>
 
-        <label className="field">
-          <span>Columns ({settings.columns})</span>
-          <input
-            type="range"
-            min="2"
-            max="4"
-            step="1"
-            value={settings.columns}
-            onChange={(event) => onChange('columns', Number(event.target.value))}
-            disabled={disabled}
-          />
-        </label>
+        {settings.layoutMode === 'uniform' ? (
+          <label className="field">
+            <span>Columns ({settings.columns})</span>
+            <input
+              type="range"
+              min="2"
+              max="4"
+              step="1"
+              value={settings.columns}
+              onChange={(event) => onChange('columns', Number(event.target.value))}
+              disabled={disabled}
+            />
+          </label>
+        ) : null}
 
         <label className="field">
           <span>Spacing ({settings.gap}px)</span>
@@ -113,20 +127,40 @@ export function CollageControls({
           />
         </label>
 
-        <label className="field">
-          <span>Featured style</span>
-          <select
-            value={settings.featuredStyle}
-            onChange={(event) =>
-              onChange('featuredStyle', event.target.value as CollageSettings['featuredStyle'])
-            }
-            disabled={disabled || settings.layoutMode !== 'featured'}
-          >
-            <option value="feature-top">Large photo on top</option>
-            <option value="feature-left">Large photo on left</option>
-            <option value="feature-grid">Balanced feature grid</option>
-          </select>
-        </label>
+        {settings.layoutMode === 'featured' ? (
+          <fieldset className="field field-full layout-choice-group">
+            <legend>Main photo style</legend>
+            <div className="choice-cards">
+              <button
+                type="button"
+                className={`choice-card ${settings.featuredStyle === 'feature-top' ? 'is-active' : ''}`}
+                onClick={() => onChange('featuredStyle', 'feature-top')}
+                disabled={disabled}
+              >
+                <strong>Top Feature</strong>
+                <span>Large photo across the top.</span>
+              </button>
+              <button
+                type="button"
+                className={`choice-card ${settings.featuredStyle === 'feature-left' ? 'is-active' : ''}`}
+                onClick={() => onChange('featuredStyle', 'feature-left')}
+                disabled={disabled}
+              >
+                <strong>Left Feature</strong>
+                <span>Large photo on the left.</span>
+              </button>
+              <button
+                type="button"
+                className={`choice-card ${settings.featuredStyle === 'feature-grid' ? 'is-active' : ''}`}
+                onClick={() => onChange('featuredStyle', 'feature-grid')}
+                disabled={disabled}
+              >
+                <strong>Large 2x2 Photo</strong>
+                <span>Main photo takes the space of 4 smaller tiles.</span>
+              </button>
+            </div>
+          </fieldset>
+        ) : null}
       </div>
     </section>
   );

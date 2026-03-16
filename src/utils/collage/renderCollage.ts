@@ -5,6 +5,13 @@ interface CanvasSize {
   height: number;
 }
 
+interface Cell {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 const COLLAGE_SIZES: Record<CollageSettings['sizePreset'], CanvasSize> = {
   'instagram-square': { width: 1080, height: 1080 },
   'instagram-portrait': { width: 1080, height: 1350 },
@@ -16,138 +23,132 @@ function getOutputSize(settings: CollageSettings): CanvasSize {
   return COLLAGE_SIZES[settings.sizePreset];
 }
 
-function getUniformGrid(
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function getGridCells(
   imageCount: number,
-  canvasWidth: number,
-  canvasHeight: number,
+  region: Cell,
   columns: number,
   gap: number
-): Array<{ x: number; y: number; width: number; height: number }> {
-  const rows = Math.ceil(imageCount / columns);
-  const tileWidth = (canvasWidth - gap * (columns - 1)) / columns;
-  const tileHeight = (canvasHeight - gap * (rows - 1)) / rows;
+): Cell[] {
+  if (imageCount <= 0) {
+    return [];
+  }
+
+  const safeColumns = clamp(columns, 1, Math.max(1, imageCount));
+  const rows = Math.ceil(imageCount / safeColumns);
+  const width = (region.width - gap * (safeColumns - 1)) / safeColumns;
+  const height = (region.height - gap * (rows - 1)) / rows;
 
   return Array.from({ length: imageCount }, (_, index) => {
-    const column = index % columns;
-    const row = Math.floor(index / columns);
+    const column = index % safeColumns;
+    const row = Math.floor(index / safeColumns);
 
     return {
-      x: column * (tileWidth + gap),
-      y: row * (tileHeight + gap),
-      width: tileWidth,
-      height: tileHeight
+      x: region.x + column * (width + gap),
+      y: region.y + row * (height + gap),
+      width,
+      height
     };
   });
 }
 
-function getFeatureTopGrid(
-  imageCount: number,
-  canvasWidth: number,
-  canvasHeight: number,
-  gap: number
-): Array<{ x: number; y: number; width: number; height: number }> {
-  if (imageCount === 0) {
-    return [];
-  }
-
-  const featuredHeight = canvasHeight * 0.56;
-  const cells = [{ x: 0, y: 0, width: canvasWidth, height: featuredHeight }];
-  const remaining = imageCount - 1;
-  if (remaining <= 0) {
-    return cells;
-  }
-
-  const columns = remaining <= 2 ? remaining : 3;
-  const rows = Math.ceil(remaining / columns);
-  const gridY = featuredHeight + gap;
-  const gridHeight = canvasHeight - gridY;
-  const tileWidth = (canvasWidth - gap * (columns - 1)) / columns;
-  const tileHeight = (gridHeight - gap * (rows - 1)) / rows;
-
-  for (let index = 0; index < remaining; index += 1) {
-    const column = index % columns;
-    const row = Math.floor(index / columns);
-    cells.push({
-      x: column * (tileWidth + gap),
-      y: gridY + row * (tileHeight + gap),
-      width: tileWidth,
-      height: tileHeight
-    });
-  }
-
-  return cells;
+function getUniformCells(imageCount: number, outputSize: CanvasSize, settings: CollageSettings): Cell[] {
+  return getGridCells(
+    imageCount,
+    { x: 0, y: 0, width: outputSize.width, height: outputSize.height },
+    settings.columns,
+    settings.gap
+  );
 }
 
-function getFeatureLeftGrid(
-  imageCount: number,
-  canvasWidth: number,
-  canvasHeight: number,
-  gap: number
-): Array<{ x: number; y: number; width: number; height: number }> {
-  if (imageCount === 0) {
+function getFeatureTopCells(imageCount: number, outputSize: CanvasSize, gap: number): Cell[] {
+  if (imageCount <= 0) {
     return [];
   }
 
-  const featureWidth = canvasWidth * 0.58;
-  const rightWidth = canvasWidth - featureWidth - gap;
-  const cells = [{ x: 0, y: 0, width: featureWidth, height: canvasHeight }];
-  const remaining = imageCount - 1;
-
-  if (remaining <= 0) {
-    return cells;
+  if (imageCount === 1) {
+    return [{ x: 0, y: 0, width: outputSize.width, height: outputSize.height }];
   }
 
-  const rows = Math.min(3, remaining);
-  const stackedHeight = (canvasHeight - gap * (rows - 1)) / rows;
+  const featureHeight = imageCount <= 3 ? outputSize.height * 0.64 : outputSize.height * 0.56;
+  const cells: Cell[] = [{ x: 0, y: 0, width: outputSize.width, height: featureHeight }];
+  const remainderRegion = {
+    x: 0,
+    y: featureHeight + gap,
+    width: outputSize.width,
+    height: outputSize.height - featureHeight - gap
+  };
+  const remainingCount = imageCount - 1;
+  const columns = remainingCount <= 2 ? remainingCount : 3;
 
-  for (let index = 0; index < Math.min(remaining, 3); index += 1) {
-    cells.push({
+  return [...cells, ...getGridCells(remainingCount, remainderRegion, columns, gap)];
+}
+
+function getFeatureLeftCells(imageCount: number, outputSize: CanvasSize, gap: number): Cell[] {
+  if (imageCount <= 0) {
+    return [];
+  }
+
+  if (imageCount === 1) {
+    return [{ x: 0, y: 0, width: outputSize.width, height: outputSize.height }];
+  }
+
+  const cells: Cell[] = [];
+  const extraGridNeeded = imageCount > 4;
+  const topHeight = extraGridNeeded ? outputSize.height * 0.66 : outputSize.height;
+  const featureWidth = outputSize.width * 0.58;
+  const supportWidth = outputSize.width - featureWidth - gap;
+
+  cells.push({ x: 0, y: 0, width: featureWidth, height: topHeight });
+
+  const rightStackCount = Math.min(imageCount - 1, imageCount <= 3 ? imageCount - 1 : 3);
+  if (rightStackCount > 0) {
+    const stackRegion = {
       x: featureWidth + gap,
-      y: index * (stackedHeight + gap),
-      width: rightWidth,
-      height: stackedHeight
-    });
+      y: 0,
+      width: supportWidth,
+      height: topHeight
+    };
+
+    cells.push(...getGridCells(rightStackCount, stackRegion, 1, gap));
   }
 
-  const leftover = remaining - 3;
+  const leftover = imageCount - 1 - rightStackCount;
   if (leftover > 0) {
-    const extraRows = Math.ceil(leftover / 3);
-    const totalHeight = canvasHeight * 0.46;
-    const extraTileHeight = (totalHeight - gap * (extraRows - 1)) / extraRows;
-    const extraTileWidth = (canvasWidth - gap * 2) / 3;
-    const startY = canvasHeight - totalHeight;
-
-    for (let index = 0; index < leftover; index += 1) {
-      const column = index % 3;
-      const row = Math.floor(index / 3);
-      cells.push({
-        x: column * (extraTileWidth + gap),
-        y: startY + row * (extraTileHeight + gap),
-        width: extraTileWidth,
-        height: extraTileHeight
-      });
-    }
+    const lowerRegion = {
+      x: 0,
+      y: topHeight + gap,
+      width: outputSize.width,
+      height: outputSize.height - topHeight - gap
+    };
+    const lowerColumns = leftover <= 2 ? leftover : 3;
+    cells.push(...getGridCells(leftover, lowerRegion, lowerColumns, gap));
   }
 
   return cells;
 }
 
-function getFeatureGrid(
-  imageCount: number,
-  canvasWidth: number,
-  canvasHeight: number,
-  gap: number
-): Array<{ x: number; y: number; width: number; height: number }> {
-  if (imageCount === 0) {
+function getFeatureGridCells(imageCount: number, outputSize: CanvasSize, gap: number): Cell[] {
+  if (imageCount <= 0) {
     return [];
   }
 
   const columns = 3;
   const rows = Math.max(3, Math.ceil((imageCount + 3) / columns));
-  const tileWidth = (canvasWidth - gap * (columns - 1)) / columns;
-  const tileHeight = (canvasHeight - gap * (rows - 1)) / rows;
-  const cells = [{ x: 0, y: 0, width: tileWidth * 2 + gap, height: tileHeight * 2 + gap }];
-  const slots: Array<{ column: number; row: number }> = [];
+  const tileWidth = (outputSize.width - gap * (columns - 1)) / columns;
+  const tileHeight = (outputSize.height - gap * (rows - 1)) / rows;
+  const cells: Cell[] = [
+    {
+      x: 0,
+      y: 0,
+      width: tileWidth * 2 + gap,
+      height: tileHeight * 2 + gap
+    }
+  ];
+  const availableSlots: Array<{ column: number; row: number }> = [];
 
   for (let row = 0; row < rows; row += 1) {
     for (let column = 0; column < columns; column += 1) {
@@ -155,14 +156,14 @@ function getFeatureGrid(
         continue;
       }
 
-      slots.push({ column, row });
+      availableSlots.push({ column, row });
     }
   }
 
   for (let index = 1; index < imageCount; index += 1) {
-    const slot = slots[index - 1];
+    const slot = availableSlots[index - 1];
     if (!slot) {
-      continue;
+      break;
     }
 
     cells.push({
@@ -174,6 +175,22 @@ function getFeatureGrid(
   }
 
   return cells;
+}
+
+function getCellsForLayout(images: ImageAsset[], settings: CollageSettings, outputSize: CanvasSize): Cell[] {
+  if (settings.layoutMode === 'uniform') {
+    return getUniformCells(images.length, outputSize, settings);
+  }
+
+  switch (settings.featuredStyle) {
+    case 'feature-left':
+      return getFeatureLeftCells(images.length, outputSize, settings.gap);
+    case 'feature-grid':
+      return getFeatureGridCells(images.length, outputSize, settings.gap);
+    case 'feature-top':
+    default:
+      return getFeatureTopCells(images.length, outputSize, settings.gap);
+  }
 }
 
 function withRoundedClip(
@@ -229,85 +246,12 @@ export function getCollageOutputSize(settings: CollageSettings): CanvasSize {
   return getOutputSize(settings);
 }
 
-export function renderUniformCollage(
-  canvas: HTMLCanvasElement,
-  images: ImageAsset[],
-  settings: CollageSettings,
-  sizeOverride?: CanvasSize
-) {
-  const context = canvas.getContext('2d');
-  if (!context) {
-    throw new Error('Canvas rendering is not available in this browser.');
-  }
-
-  const outputSize = sizeOverride ?? getOutputSize(settings);
-  canvas.width = outputSize.width;
-  canvas.height = outputSize.height;
-
-  context.clearRect(0, 0, outputSize.width, outputSize.height);
-  context.fillStyle = settings.backgroundColor;
-  context.fillRect(0, 0, outputSize.width, outputSize.height);
-
-  const columns = Math.min(settings.columns, Math.max(1, images.length));
-  const cells = getUniformGrid(
-    images.length,
-    outputSize.width,
-    outputSize.height,
-    columns,
-    settings.gap
-  );
-
-  cells.forEach((cell, index) => {
-    const image = images[index];
-    if (!image) {
-      return;
-    }
-
-    context.save();
-    if (settings.cornerRadius > 0) {
-      withRoundedClip(context, cell.x, cell.y, cell.width, cell.height, settings.cornerRadius);
-    }
-
-    drawImageToRect(
-      context,
-      image.image,
-      cell.x,
-      cell.y,
-      cell.width,
-      cell.height,
-      settings.fitMode
-    );
-    context.restore();
-  });
-}
-
-function getFeaturedCells(
-  images: ImageAsset[],
-  settings: CollageSettings,
-  outputSize: CanvasSize
-) {
-  switch (settings.featuredStyle) {
-    case 'feature-left':
-      return getFeatureLeftGrid(images.length, outputSize.width, outputSize.height, settings.gap);
-    case 'feature-grid':
-      return getFeatureGrid(images.length, outputSize.width, outputSize.height, settings.gap);
-    case 'feature-top':
-    default:
-      return getFeatureTopGrid(images.length, outputSize.width, outputSize.height, settings.gap);
-  }
-}
-
 export function renderCollage(
   canvas: HTMLCanvasElement,
   images: ImageAsset[],
   settings: CollageSettings,
   sizeOverride?: CanvasSize
 ) {
-  if (settings.layoutMode === 'uniform') {
-    renderUniformCollage(canvas, images, settings, sizeOverride);
-    return;
-  }
-
   const context = canvas.getContext('2d');
   if (!context) {
     throw new Error('Canvas rendering is not available in this browser.');
@@ -316,11 +260,12 @@ export function renderCollage(
   const outputSize = sizeOverride ?? getOutputSize(settings);
   canvas.width = outputSize.width;
   canvas.height = outputSize.height;
+
   context.clearRect(0, 0, outputSize.width, outputSize.height);
   context.fillStyle = settings.backgroundColor;
   context.fillRect(0, 0, outputSize.width, outputSize.height);
 
-  const cells = getFeaturedCells(images, settings, outputSize);
+  const cells = getCellsForLayout(images, settings, outputSize);
   cells.forEach((cell, index) => {
     const image = images[index];
     if (!image) {

@@ -367,6 +367,43 @@ select:disabled {
   color: var(--danger);
 }
 
+.layout-choice-group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.choice-cards {
+  display: grid;
+  gap: 10px;
+}
+
+.choice-card {
+  display: grid;
+  gap: 4px;
+  min-height: 72px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: #ffffff;
+  color: var(--accent);
+  text-align: left;
+}
+
+.choice-card strong {
+  font-size: 0.96rem;
+}
+
+.choice-card span {
+  color: var(--text-soft);
+  font-size: 0.88rem;
+}
+
+.choice-card.is-active {
+  border-color: var(--accent);
+  background: #f6f1e6;
+}
+
 .controls-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

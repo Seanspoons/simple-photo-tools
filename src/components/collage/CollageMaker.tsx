@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CollageSettings, ImageAsset } from '../../types';
-import { createDownloadFilename, exportCanvasToBlob, triggerDownload } from '../../utils/exportImage';
+import {
+  createDownloadFilename,
+  exportCanvasToBlob,
+  shareImageIfPossible,
+  triggerDownload
+} from '../../utils/exportImage';
 import { loadImageAsset } from '../../utils/imageLoader';
 import { getCollageOutputSize, renderCollage } from '../../utils/collage/renderCollage';
 import { CollageControls } from './CollageControls';
@@ -27,6 +32,7 @@ export function CollageMaker() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
+  const [canNativeShare, setCanNativeShare] = useState(false);
   const imagesRef = useRef<ImageAsset[]>([]);
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const exportCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -46,8 +52,12 @@ export function CollageMaker() {
   const canBuildCollage = images.length >= 2;
   const previewHelperText =
     settings.layoutMode === 'featured'
-      ? 'The first photo becomes the featured image. Use the buttons below to move another photo to the front.'
+      ? 'The first photo becomes the main image. Use “Use as Main Photo” below to switch it.'
       : 'Uniform Grid keeps all photos evenly balanced.';
+
+  useEffect(() => {
+    setCanNativeShare('share' in navigator && 'canShare' in navigator);
+  }, []);
 
   useEffect(() => {
     if (!canBuildCollage || !previewCanvasRef.current) {
@@ -57,10 +67,11 @@ export function CollageMaker() {
     const outputSize = getCollageOutputSize(settings);
     const maxPreviewWidth = 960;
     const scale = Math.min(maxPreviewWidth / outputSize.width, 1);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
     renderCollage(previewCanvasRef.current, images, settings, {
-      width: Math.round(outputSize.width * scale),
-      height: Math.round(outputSize.height * scale)
+      width: Math.round(outputSize.width * scale * dpr),
+      height: Math.round(outputSize.height * scale * dpr)
     });
   }, [canBuildCollage, images, settings]);
 
@@ -168,7 +179,7 @@ export function CollageMaker() {
     setStatusMessage('Featured photo updated.');
   };
 
-  const handleExport = async (format: 'jpeg' | 'png') => {
+  const handleExport = async (format: 'jpeg' | 'png', action: 'download' | 'share') => {
     if (!canBuildCollage || !exportCanvasRef.current) {
       setErrorMessage('Add at least 2 photos before saving.');
       return;
@@ -181,8 +192,18 @@ export function CollageMaker() {
     try {
       renderCollage(exportCanvasRef.current, images, settings);
       const blob = await exportCanvasToBlob(exportCanvasRef.current, format, 0.94);
-      triggerDownload(blob, createDownloadFilename('collage', format).replace('-watermarked', ''));
-      setStatusMessage(`collage.${format === 'jpeg' ? 'jpg' : 'png'} is ready.`);
+      const filename = createDownloadFilename('collage', format).replace('-watermarked', '');
+
+      if (action === 'share') {
+        const shared = await shareImageIfPossible(blob, filename);
+        if (shared) {
+          setStatusMessage('Collage ready to save or share.');
+          return;
+        }
+      }
+
+      triggerDownload(blob, filename);
+      setStatusMessage(`${filename} is ready.`);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'The collage could not be exported.');
       setStatusMessage(null);
@@ -276,7 +297,7 @@ export function CollageMaker() {
                         onClick={() => handleSetFeatured(index)}
                         disabled={index === 0 || isBusy}
                       >
-                        Use as Feature
+                        Use as Main Photo
                       </button>
                       <button
                         type="button"
@@ -306,7 +327,7 @@ export function CollageMaker() {
               <button
                 type="button"
                 className="primary-button"
-                onClick={() => handleExport('jpeg')}
+                onClick={() => handleExport('jpeg', 'download')}
                 disabled={!canBuildCollage || isBusy}
               >
                 Save JPEG
@@ -314,11 +335,21 @@ export function CollageMaker() {
               <button
                 type="button"
                 className="secondary-button"
-                onClick={() => handleExport('png')}
+                onClick={() => handleExport('png', 'download')}
                 disabled={!canBuildCollage || isBusy}
               >
                 Save PNG
               </button>
+              {canNativeShare ? (
+                <button
+                  type="button"
+                  className="ghost-button"
+                  onClick={() => handleExport('jpeg', 'share')}
+                  disabled={!canBuildCollage || isBusy}
+                >
+                  Share / Save to Photos
+                </button>
+              ) : null}
               <button
                 type="button"
                 className="ghost-button"
