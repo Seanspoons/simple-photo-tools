@@ -1,8 +1,17 @@
 export type WatermarkPosition =
   | 'top-left'
+  | 'top-center'
   | 'top-right'
+  | 'center-left'
+  | 'center'
+  | 'center-right'
   | 'bottom-left'
+  | 'bottom-center'
   | 'bottom-right';
+
+export type WatermarkKind = 'text' | 'image';
+export type WatermarkLayout = 'single' | 'proof';
+export type WatermarkProofAngle = 'diagonal' | 'reverse-diagonal' | 'horizontal';
 
 export type ExportFormat = 'jpeg' | 'png';
 export type CollageFitMode = 'cover' | 'contain';
@@ -14,6 +23,8 @@ export type CollageSizePreset =
 export type CollageFeaturedSpan = '1x1' | '2x1' | '1x2' | '2x2';
 
 export interface WatermarkSettings {
+  kind: WatermarkKind;
+  layout: WatermarkLayout;
   text: string;
   position: WatermarkPosition;
   fontFamily: string;
@@ -21,6 +32,8 @@ export interface WatermarkSettings {
   opacity: number;
   size: number;
   margin: number;
+  proofGap: number;
+  proofAngle: WatermarkProofAngle;
   bold: boolean;
   shadow: boolean;
   showBackground: boolean;

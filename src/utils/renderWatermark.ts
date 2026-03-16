@@ -28,6 +28,13 @@ function getTextCoordinates(
   switch (position) {
     case 'top-left':
       return { x: margin, y: margin, align: 'left', baseline: 'top' };
+    case 'top-center':
+      return {
+        x: (canvasWidth - textWidth) / 2,
+        y: margin,
+        align: 'left',
+        baseline: 'top'
+      };
     case 'top-right':
       return {
         x: canvasWidth - margin - textWidth,
@@ -35,9 +42,37 @@ function getTextCoordinates(
         align: 'left',
         baseline: 'top'
       };
+    case 'center-left':
+      return {
+        x: margin,
+        y: (canvasHeight - textHeight) / 2,
+        align: 'left',
+        baseline: 'top'
+      };
+    case 'center':
+      return {
+        x: (canvasWidth - textWidth) / 2,
+        y: (canvasHeight - textHeight) / 2,
+        align: 'left',
+        baseline: 'top'
+      };
+    case 'center-right':
+      return {
+        x: canvasWidth - margin - textWidth,
+        y: (canvasHeight - textHeight) / 2,
+        align: 'left',
+        baseline: 'top'
+      };
     case 'bottom-left':
       return {
         x: margin,
+        y: canvasHeight - margin - textHeight,
+        align: 'left',
+        baseline: 'top'
+      };
+    case 'bottom-center':
+      return {
+        x: (canvasWidth - textWidth) / 2,
         y: canvasHeight - margin - textHeight,
         align: 'left',
         baseline: 'top'

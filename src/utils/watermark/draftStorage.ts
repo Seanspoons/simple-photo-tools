@@ -11,6 +11,7 @@ interface StoredWatermarkDraft {
   exportFormat: ExportFormat;
   previewMode: 'after' | 'before';
   file: File | null;
+  watermarkFile: File | null;
 }
 
 function openDatabase(): Promise<IDBDatabase | null> {
@@ -54,7 +55,8 @@ export async function saveWatermarkDraft(
   settings: WatermarkSettings,
   exportFormat: ExportFormat,
   previewMode: 'after' | 'before',
-  file: File | null
+  file: File | null,
+  watermarkFile: File | null
 ): Promise<void> {
   const database = await openDatabase();
   if (!database) {
@@ -69,7 +71,8 @@ export async function saveWatermarkDraft(
       settings,
       exportFormat,
       previewMode,
-      file
+      file,
+      watermarkFile
     } satisfies StoredWatermarkDraft);
 
     transaction.oncomplete = () => {

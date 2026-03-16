@@ -12,6 +12,8 @@ export const FONT_OPTIONS = [
 ] as const;
 
 export const DEFAULT_SETTINGS: WatermarkSettings = {
+  kind: 'text',
+  layout: 'single',
   text: '© Your Name',
   position: 'top-right',
   fontFamily: 'Roboto',
@@ -19,6 +21,8 @@ export const DEFAULT_SETTINGS: WatermarkSettings = {
   opacity: 1,
   size: 6,
   margin: 1.5,
+  proofGap: 18,
+  proofAngle: 'diagonal',
   bold: false,
   shadow: false,
   showBackground: false

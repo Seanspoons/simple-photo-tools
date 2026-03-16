@@ -200,7 +200,7 @@ export function WatermarkTool() {
       return;
     }
 
-    void saveWatermarkDraft(settings, exportFormat, previewMode, imageAsset?.file ?? null);
+    void saveWatermarkDraft(settings, exportFormat, previewMode, imageAsset?.file ?? null, null);
   }, [exportFormat, hasLoadedDraft, imageAsset, previewMode, settings]);
 
   const imageSummary = useMemo(() => {
