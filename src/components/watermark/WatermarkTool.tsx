@@ -81,6 +81,7 @@ function loadStoredPresets(): SavedPreset[] {
 
 export function WatermarkTool() {
   const [imageAsset, setImageAsset] = useState<ImageAsset | null>(null);
+  const [watermarkAsset, setWatermarkAsset] = useState<ImageAsset | null>(null);
   const [settings, setSettings] = useState<WatermarkSettings>(loadStoredSettings);
   const [exportFormat, setExportFormat] = useState<ExportFormat>(loadStoredExportFormat);
   const [savedPresets, setSavedPresets] = useState<SavedPreset[]>(loadStoredPresets);
@@ -123,9 +124,15 @@ export function WatermarkTool() {
         }
 
         const restoredAsset = draft.file ? await loadImageAsset(draft.file) : null;
+        const restoredWatermarkAsset = draft.watermarkFile
+          ? await loadImageAsset(draft.watermarkFile)
+          : null;
         if (isCancelled) {
           if (restoredAsset) {
             URL.revokeObjectURL(restoredAsset.objectUrl);
+          }
+          if (restoredWatermarkAsset) {
+            URL.revokeObjectURL(restoredWatermarkAsset.objectUrl);
           }
           return;
         }
@@ -138,6 +145,12 @@ export function WatermarkTool() {
             URL.revokeObjectURL(current.objectUrl);
           }
           return restoredAsset;
+        });
+        setWatermarkAsset((current) => {
+          if (current?.objectUrl) {
+            URL.revokeObjectURL(current.objectUrl);
+          }
+          return restoredWatermarkAsset;
         });
         setStatusMessage(restoredAsset ? 'Restored your last watermark.' : null);
       } catch {
@@ -181,27 +194,37 @@ export function WatermarkTool() {
     renderWatermarkedImage({
       canvas: previewCanvas,
       image: imageAsset.image,
+      watermarkImage: watermarkAsset?.image,
       width: previewSize.width,
       height: previewSize.height,
       settings
     });
-  }, [imageAsset, previewMode, settings]);
+  }, [imageAsset, previewMode, settings, watermarkAsset]);
 
   useEffect(() => {
     return () => {
       if (imageAsset?.objectUrl) {
         URL.revokeObjectURL(imageAsset.objectUrl);
       }
+      if (watermarkAsset?.objectUrl) {
+        URL.revokeObjectURL(watermarkAsset.objectUrl);
+      }
     };
-  }, [imageAsset]);
+  }, [imageAsset, watermarkAsset]);
 
   useEffect(() => {
     if (!hasLoadedDraft) {
       return;
     }
 
-    void saveWatermarkDraft(settings, exportFormat, previewMode, imageAsset?.file ?? null, null);
-  }, [exportFormat, hasLoadedDraft, imageAsset, previewMode, settings]);
+    void saveWatermarkDraft(
+      settings,
+      exportFormat,
+      previewMode,
+      imageAsset?.file ?? null,
+      watermarkAsset?.file ?? null
+    );
+  }, [exportFormat, hasLoadedDraft, imageAsset, previewMode, settings, watermarkAsset]);
 
   const imageSummary = useMemo(() => {
     if (!imageAsset) {
@@ -328,6 +351,7 @@ export function WatermarkTool() {
       renderWatermarkedImage({
         canvas: exportCanvasRef.current,
         image: imageAsset.image,
+        watermarkImage: watermarkAsset?.image,
         width: imageAsset.width,
         height: imageAsset.height,
         settings

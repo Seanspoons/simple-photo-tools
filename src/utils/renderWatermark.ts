@@ -1,4 +1,9 @@
-import { RenderWatermarkOptions, WatermarkPosition, WatermarkSettings } from '../types';
+import {
+  RenderWatermarkOptions,
+  WatermarkPosition,
+  WatermarkProofAngle,
+  WatermarkSettings
+} from '../types';
 
 const MIN_FONT_SIZE = 14;
 
@@ -15,6 +20,23 @@ function getFontSize(width: number, height: number, settings: WatermarkSettings)
 function getMargin(width: number, height: number, settings: WatermarkSettings): number {
   const shorterEdge = Math.min(width, height);
   return Math.round((shorterEdge * settings.margin) / 100);
+}
+
+function getProofGap(width: number, height: number, settings: WatermarkSettings): number {
+  const shorterEdge = Math.min(width, height);
+  return Math.round((shorterEdge * settings.proofGap) / 100);
+}
+
+function getProofAngle(angle: WatermarkProofAngle): number {
+  switch (angle) {
+    case 'horizontal':
+      return 0;
+    case 'reverse-diagonal':
+      return (-35 * Math.PI) / 180;
+    case 'diagonal':
+    default:
+      return (35 * Math.PI) / 180;
+  }
 }
 
 function getTextCoordinates(
@@ -87,29 +109,42 @@ function getTextCoordinates(
   }
 }
 
-export function renderWatermarkedImage({
-  canvas,
-  image,
-  width,
-  height,
-  settings
-}: RenderWatermarkOptions): void {
-  const context = canvas.getContext('2d');
-  if (!context) {
-    throw new Error('Canvas rendering is not available in this browser.');
-  }
+function getImageSize(
+  canvasWidth: number,
+  canvasHeight: number,
+  settings: WatermarkSettings,
+  imageWidth: number,
+  imageHeight: number
+): { width: number; height: number } {
+  const shorterEdge = Math.min(canvasWidth, canvasHeight);
+  const targetSize = clamp(
+    Math.round((shorterEdge * settings.size) / 100),
+    MIN_FONT_SIZE,
+    Math.round(shorterEdge * 0.35)
+  );
+  const scale = targetSize / Math.max(imageWidth, imageHeight);
 
-  canvas.width = width;
-  canvas.height = height;
-  context.clearRect(0, 0, width, height);
-  context.drawImage(image, 0, 0, width, height);
+  return {
+    width: Math.max(1, Math.round(imageWidth * scale)),
+    height: Math.max(1, Math.round(imageHeight * scale))
+  };
+}
 
-  const text = settings.text.trim();
-  if (!text) {
-    return;
-  }
+function applyShadow(context: CanvasRenderingContext2D, intensity: number): void {
+  context.shadowColor = 'rgba(0, 0, 0, 0.45)';
+  context.shadowBlur = Math.max(4, intensity * 0.25);
+  context.shadowOffsetX = Math.max(1, Math.round(intensity * 0.08));
+  context.shadowOffsetY = Math.max(1, Math.round(intensity * 0.08));
+}
 
-  const fontSize = getFontSize(width, height, settings);
+function drawSingleTextWatermark(
+  context: CanvasRenderingContext2D,
+  canvasWidth: number,
+  canvasHeight: number,
+  settings: WatermarkSettings,
+  text: string
+): void {
+  const fontSize = getFontSize(canvasWidth, canvasHeight, settings);
   const fontWeight = settings.bold ? '700' : '400';
   const fontFamily =
     settings.fontFamily === 'Roboto'
@@ -128,11 +163,11 @@ export function renderWatermarkedImage({
   const descent = metrics.actualBoundingBoxDescent || fontSize * 0.2;
   const textWidth = left + right;
   const textHeight = ascent + descent;
-  const margin = getMargin(width, height, settings);
+  const margin = getMargin(canvasWidth, canvasHeight, settings);
   const { x: textBoxX, y: textBoxY } = getTextCoordinates(
     settings.position,
-    width,
-    height,
+    canvasWidth,
+    canvasHeight,
     margin,
     textWidth,
     textHeight
@@ -140,32 +175,212 @@ export function renderWatermarkedImage({
   const textX = textBoxX + left;
   const textY = textBoxY + ascent;
 
-  context.save();
-  context.globalAlpha = clamp(settings.opacity, 0.05, 1);
-
   if (settings.showBackground) {
     const paddingX = Math.round(fontSize * 0.35);
     const paddingY = Math.round(fontSize * 0.2);
     const radius = Math.round(fontSize * 0.35);
-    const boxX = textBoxX - paddingX;
-    const boxY = textBoxY - paddingY;
-    const boxWidth = textWidth + paddingX * 2;
-    const boxHeight = textHeight + paddingY * 2;
-
     context.fillStyle = 'rgba(0, 0, 0, 0.28)';
     context.beginPath();
-    context.roundRect(boxX, boxY, boxWidth, boxHeight, radius);
+    context.roundRect(
+      textBoxX - paddingX,
+      textBoxY - paddingY,
+      textWidth + paddingX * 2,
+      textHeight + paddingY * 2,
+      radius
+    );
     context.fill();
   }
 
   if (settings.shadow) {
-    context.shadowColor = 'rgba(0, 0, 0, 0.45)';
-    context.shadowBlur = Math.max(4, fontSize * 0.25);
-    context.shadowOffsetX = Math.max(1, Math.round(fontSize * 0.08));
-    context.shadowOffsetY = Math.max(1, Math.round(fontSize * 0.08));
+    applyShadow(context, fontSize);
   }
 
   context.fillStyle = settings.color;
   context.fillText(text, textX, textY);
+}
+
+function drawSingleImageWatermark(
+  context: CanvasRenderingContext2D,
+  canvasWidth: number,
+  canvasHeight: number,
+  settings: WatermarkSettings,
+  watermarkImage: HTMLImageElement
+): void {
+  const imageSize = getImageSize(
+    canvasWidth,
+    canvasHeight,
+    settings,
+    watermarkImage.naturalWidth,
+    watermarkImage.naturalHeight
+  );
+  const margin = getMargin(canvasWidth, canvasHeight, settings);
+  const { x, y } = getTextCoordinates(
+    settings.position,
+    canvasWidth,
+    canvasHeight,
+    margin,
+    imageSize.width,
+    imageSize.height
+  );
+
+  if (settings.shadow) {
+    applyShadow(context, Math.max(imageSize.width, imageSize.height));
+  }
+
+  context.drawImage(watermarkImage, x, y, imageSize.width, imageSize.height);
+}
+
+function drawProofTextWatermark(
+  context: CanvasRenderingContext2D,
+  canvasWidth: number,
+  canvasHeight: number,
+  settings: WatermarkSettings,
+  text: string
+): void {
+  const fontSize = getFontSize(canvasWidth, canvasHeight, settings);
+  const fontWeight = settings.bold ? '700' : '400';
+  const fontFamily =
+    settings.fontFamily === 'Roboto'
+      ? '"Roboto", "Segoe UI", Arial, sans-serif'
+      : settings.fontFamily === 'Playwrite US Trad'
+        ? '"Playwrite US Trad", cursive'
+        : settings.fontFamily;
+  context.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+  context.textAlign = 'left';
+  context.textBaseline = 'alphabetic';
+
+  const metrics = context.measureText(text);
+  const left = metrics.actualBoundingBoxLeft || 0;
+  const right = metrics.actualBoundingBoxRight || metrics.width;
+  const ascent = metrics.actualBoundingBoxAscent || fontSize * 0.8;
+  const descent = metrics.actualBoundingBoxDescent || fontSize * 0.2;
+  const textWidth = left + right;
+  const textHeight = ascent + descent;
+  const gap = getProofGap(canvasWidth, canvasHeight, settings);
+  const stepX = textWidth + gap;
+  const stepY = textHeight + gap;
+  const diagonal = Math.ceil(Math.hypot(canvasWidth, canvasHeight));
+
+  context.save();
+  context.translate(canvasWidth / 2, canvasHeight / 2);
+  context.rotate(getProofAngle(settings.proofAngle));
+
+  if (settings.shadow) {
+    applyShadow(context, fontSize);
+  }
+
+  for (let y = -diagonal; y <= diagonal; y += stepY) {
+    for (let x = -diagonal; x <= diagonal; x += stepX) {
+      const boxX = x - textWidth / 2;
+      const boxY = y - textHeight / 2;
+
+      if (settings.showBackground) {
+        const paddingX = Math.round(fontSize * 0.35);
+        const paddingY = Math.round(fontSize * 0.2);
+        const radius = Math.round(fontSize * 0.35);
+        context.fillStyle = 'rgba(0, 0, 0, 0.28)';
+        context.beginPath();
+        context.roundRect(
+          boxX - paddingX,
+          boxY - paddingY,
+          textWidth + paddingX * 2,
+          textHeight + paddingY * 2,
+          radius
+        );
+        context.fill();
+      }
+
+      context.fillStyle = settings.color;
+      context.fillText(text, boxX + left, boxY + ascent);
+    }
+  }
+
+  context.restore();
+}
+
+function drawProofImageWatermark(
+  context: CanvasRenderingContext2D,
+  canvasWidth: number,
+  canvasHeight: number,
+  settings: WatermarkSettings,
+  watermarkImage: HTMLImageElement
+): void {
+  const imageSize = getImageSize(
+    canvasWidth,
+    canvasHeight,
+    settings,
+    watermarkImage.naturalWidth,
+    watermarkImage.naturalHeight
+  );
+  const gap = getProofGap(canvasWidth, canvasHeight, settings);
+  const stepX = imageSize.width + gap;
+  const stepY = imageSize.height + gap;
+  const diagonal = Math.ceil(Math.hypot(canvasWidth, canvasHeight));
+
+  context.save();
+  context.translate(canvasWidth / 2, canvasHeight / 2);
+  context.rotate(getProofAngle(settings.proofAngle));
+
+  if (settings.shadow) {
+    applyShadow(context, Math.max(imageSize.width, imageSize.height));
+  }
+
+  for (let y = -diagonal; y <= diagonal; y += stepY) {
+    for (let x = -diagonal; x <= diagonal; x += stepX) {
+      context.drawImage(
+        watermarkImage,
+        x - imageSize.width / 2,
+        y - imageSize.height / 2,
+        imageSize.width,
+        imageSize.height
+      );
+    }
+  }
+
+  context.restore();
+}
+
+export function renderWatermarkedImage({
+  canvas,
+  image,
+  watermarkImage = null,
+  width,
+  height,
+  settings
+}: RenderWatermarkOptions): void {
+  const context = canvas.getContext('2d');
+  if (!context) {
+    throw new Error('Canvas rendering is not available in this browser.');
+  }
+
+  canvas.width = width;
+  canvas.height = height;
+  context.clearRect(0, 0, width, height);
+  context.drawImage(image, 0, 0, width, height);
+
+  const text = settings.text.trim();
+  if (settings.kind === 'text' && !text) {
+    return;
+  }
+
+  if (settings.kind === 'image' && !watermarkImage) {
+    return;
+  }
+
+  context.save();
+  context.globalAlpha = clamp(settings.opacity, 0.05, 1);
+
+  if (settings.layout === 'proof') {
+    if (settings.kind === 'text') {
+      drawProofTextWatermark(context, width, height, settings, text);
+    } else if (watermarkImage) {
+      drawProofImageWatermark(context, width, height, settings, watermarkImage);
+    }
+  } else if (settings.kind === 'text') {
+    drawSingleTextWatermark(context, width, height, settings, text);
+  } else if (watermarkImage) {
+    drawSingleImageWatermark(context, width, height, settings, watermarkImage);
+  }
+
   context.restore();
 }

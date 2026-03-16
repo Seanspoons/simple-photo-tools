@@ -66,6 +66,7 @@ export interface ImageAsset {
 export interface RenderWatermarkOptions {
   canvas: HTMLCanvasElement;
   image: HTMLImageElement;
+  watermarkImage?: HTMLImageElement | null;
   width: number;
   height: number;
   settings: WatermarkSettings;
