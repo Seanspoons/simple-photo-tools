@@ -250,11 +250,9 @@ function drawProofTextWatermark(
   context.textBaseline = 'alphabetic';
 
   const metrics = context.measureText(text);
-  const left = metrics.actualBoundingBoxLeft || 0;
-  const right = metrics.actualBoundingBoxRight || metrics.width;
+  const textWidth = metrics.width || fontSize * Math.max(text.length * 0.55, 1);
   const ascent = metrics.actualBoundingBoxAscent || fontSize * 0.8;
   const descent = metrics.actualBoundingBoxDescent || fontSize * 0.2;
-  const textWidth = left + right;
   const textHeight = ascent + descent;
   const gap = getProofGap(canvasWidth, canvasHeight, settings);
   const stepX = textWidth + gap;
@@ -273,9 +271,6 @@ function drawProofTextWatermark(
   for (let y = -diagonal; y <= diagonal; y += stepY) {
     const offsetX = row % 2 === 0 ? 0 : stepX / 2;
     for (let x = -diagonal + offsetX; x <= diagonal + offsetX; x += stepX) {
-      const boxX = x - textWidth / 2;
-      const boxY = y - textHeight / 2;
-
       if (settings.showBackground) {
         const paddingX = Math.round(fontSize * 0.35);
         const paddingY = Math.round(fontSize * 0.2);
@@ -283,8 +278,8 @@ function drawProofTextWatermark(
         context.fillStyle = 'rgba(0, 0, 0, 0.28)';
         context.beginPath();
         context.roundRect(
-          boxX - paddingX,
-          boxY - paddingY,
+          x - textWidth / 2 - paddingX,
+          y - textHeight / 2 - paddingY,
           textWidth + paddingX * 2,
           textHeight + paddingY * 2,
           radius
@@ -293,7 +288,9 @@ function drawProofTextWatermark(
       }
 
       context.fillStyle = settings.color;
-      context.fillText(text, boxX + left, boxY + ascent);
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.fillText(text, x, y);
     }
     row += 1;
   }
