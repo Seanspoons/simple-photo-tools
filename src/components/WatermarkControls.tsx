@@ -1,7 +1,6 @@
 import { ChangeEvent, useId } from 'react';
 import { FONT_OPTIONS } from '../constants';
 import {
-  ExportFormat,
   SavedPreset,
   WatermarkLayout,
   WatermarkPosition,
@@ -11,7 +10,6 @@ import {
 
 interface WatermarkControlsProps {
   settings: WatermarkSettings;
-  exportFormat: ExportFormat;
   beforeAfterMode: 'after' | 'before';
   presetName: string;
   savedPresets: SavedPreset[];
@@ -19,7 +17,6 @@ interface WatermarkControlsProps {
   hasWatermarkImage: boolean;
   disabled?: boolean;
   onSettingChange: <K extends keyof WatermarkSettings>(key: K, value: WatermarkSettings[K]) => void;
-  onExportFormatChange: (format: ExportFormat) => void;
   onBeforeAfterChange: (mode: 'after' | 'before') => void;
   onPresetNameChange: (value: string) => void;
   onSavePreset: () => void;
@@ -30,16 +27,16 @@ interface WatermarkControlsProps {
   onReset: () => void;
 }
 
-const POSITION_OPTIONS: Array<{ label: string; value: WatermarkPosition; icon: string }> = [
-  { label: 'Top left', value: 'top-left', icon: '↖' },
-  { label: 'Top center', value: 'top-center', icon: '↑' },
-  { label: 'Top right', value: 'top-right', icon: '↗' },
-  { label: 'Center left', value: 'center-left', icon: '←' },
-  { label: 'Center', value: 'center', icon: '•' },
-  { label: 'Center right', value: 'center-right', icon: '→' },
-  { label: 'Bottom left', value: 'bottom-left', icon: '↙' },
-  { label: 'Bottom center', value: 'bottom-center', icon: '↓' },
-  { label: 'Bottom right', value: 'bottom-right', icon: '↘' }
+const POSITION_OPTIONS: Array<{ label: string; value: WatermarkPosition; iconClass: string }> = [
+  { label: 'Top left', value: 'top-left', iconClass: 'is-up-left' },
+  { label: 'Top center', value: 'top-center', iconClass: 'is-up' },
+  { label: 'Top right', value: 'top-right', iconClass: 'is-up-right' },
+  { label: 'Center left', value: 'center-left', iconClass: 'is-left' },
+  { label: 'Center', value: 'center', iconClass: 'is-center' },
+  { label: 'Center right', value: 'center-right', iconClass: 'is-right' },
+  { label: 'Bottom left', value: 'bottom-left', iconClass: 'is-down-left' },
+  { label: 'Bottom center', value: 'bottom-center', iconClass: 'is-down' },
+  { label: 'Bottom right', value: 'bottom-right', iconClass: 'is-down-right' }
 ];
 
 const LAYOUT_OPTIONS: Array<{ label: string; value: WatermarkLayout; description: string }> = [
@@ -67,7 +64,6 @@ function parseRangeValue(event: ChangeEvent<HTMLInputElement>): number {
 
 export function WatermarkControls({
   settings,
-  exportFormat,
   beforeAfterMode,
   presetName,
   savedPresets,
@@ -75,7 +71,6 @@ export function WatermarkControls({
   hasWatermarkImage,
   disabled = false,
   onSettingChange,
-  onExportFormatChange,
   onBeforeAfterChange,
   onPresetNameChange,
   onSavePreset,
@@ -146,8 +141,8 @@ export function WatermarkControls({
               i
             </span>
             <p className="helper-text">
-              Saved looks keep the watermark style, layout, position, and export type. If you use
-              a logo watermark, keep that logo loaded too.
+              Saved looks keep the watermark style, layout, and position. If you use a logo
+              watermark, keep that logo loaded too.
             </p>
           </div>
         </div>
@@ -323,13 +318,11 @@ export function WatermarkControls({
                     onClick={() => onSettingChange('position', option.value)}
                     disabled={disabled}
                     aria-pressed={settings.position === option.value}
-                >
-                  <span className="position-button-icon" aria-hidden="true">
-                    {option.icon}
-                  </span>
-                  <span className="sr-only">{option.label}</span>
-                </button>
-              ))}
+                  >
+                    <span className={`position-button-icon ${option.iconClass}`} aria-hidden="true" />
+                    <span className="sr-only">{option.label}</span>
+                  </button>
+                ))}
               </div>
             </fieldset>
 
@@ -404,18 +397,6 @@ export function WatermarkControls({
             onChange={(event) => onSettingChange('size', parseRangeValue(event))}
             disabled={disabled}
           />
-        </label>
-
-        <label className="field">
-          <span>Save as</span>
-          <select
-            value={exportFormat}
-            onChange={(event) => onExportFormatChange(event.target.value as ExportFormat)}
-            disabled={disabled}
-          >
-            <option value="jpeg">JPEG</option>
-            <option value="png">PNG</option>
-          </select>
         </label>
 
         <fieldset className="toggle-row field-full">

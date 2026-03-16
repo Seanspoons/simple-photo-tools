@@ -478,7 +478,6 @@ export function WatermarkTool() {
         <div className="right-column">
           <WatermarkControls
             settings={settings}
-            exportFormat={exportFormat}
             beforeAfterMode={previewMode}
             presetName={presetName}
             savedPresets={savedPresets}
@@ -486,7 +485,6 @@ export function WatermarkTool() {
             hasWatermarkImage={Boolean(watermarkAsset)}
             disabled={isBusy}
             onSettingChange={handleSettingChange}
-            onExportFormatChange={setExportFormat}
             onBeforeAfterChange={setPreviewMode}
             onPresetNameChange={setPresetName}
             onSavePreset={handleSavePreset}
