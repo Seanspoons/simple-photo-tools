@@ -677,6 +677,19 @@ select:disabled {
   border: 1px solid #efd0a2;
 }
 
+.warning-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.warning-action-button {
+  min-height: 40px;
+  padding: 0 14px;
+  background: #ffffff;
+}
+
 .field input[type="color"] {
   padding: 6px;
 }

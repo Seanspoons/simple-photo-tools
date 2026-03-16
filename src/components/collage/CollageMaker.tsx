@@ -124,13 +124,34 @@ export function CollageMaker() {
     () => getCollageLayoutMetrics(images.length, settings),
     [images.length, settings]
   );
-  const layoutWarning = useMemo(() => {
+  const layoutAdvice = useMemo(() => {
     if (!canBuildCollage) {
-      return null;
+      return { message: null, actions: [] as Array<{ label: string; apply: () => void }> };
     }
 
     if (layoutMetrics.cellSize < 150) {
-      return 'This layout will make each photo quite small. Try fewer columns, less spacing, or a larger output size.';
+      return {
+        message:
+          'This layout will make each photo quite small. Try fewer columns, less spacing, or a larger output size.',
+        actions: [
+          {
+            label: 'Use fewer columns',
+            apply: () =>
+              setSettings((current) => ({
+                ...current,
+                columns: Math.max(2, current.columns - 1)
+              }))
+          },
+          {
+            label: 'Use High Res',
+            apply: () =>
+              setSettings((current) => ({
+                ...current,
+                sizePreset: 'high-res-square'
+              }))
+          }
+        ]
+      };
     }
 
     if (
@@ -138,10 +159,23 @@ export function CollageMaker() {
       settings.featuredSpan === '1x1' &&
       layoutMetrics.gridHeight < layoutMetrics.outputHeight * 0.68
     ) {
-      return 'This story layout leaves a lot of background space. A larger main photo often looks better here.';
+      return {
+        message:
+          'This story layout leaves a lot of background space. A larger main photo often looks better here.',
+        actions: [
+          {
+            label: 'Make main photo larger',
+            apply: () =>
+              setSettings((current) => ({
+                ...current,
+                featuredSpan: '2x2'
+              }))
+          }
+        ]
+      };
     }
 
-    return null;
+    return { message: null, actions: [] as Array<{ label: string; apply: () => void }> };
   }, [canBuildCollage, layoutMetrics, settings.featuredSpan, settings.sizePreset]);
   const previewHelperText =
     settings.featuredSpan === '1x1'
@@ -498,7 +532,14 @@ export function CollageMaker() {
             settings={settings}
             presetName={presetName}
             savedPresets={savedPresets}
-            layoutWarning={layoutWarning}
+            layoutWarning={layoutAdvice.message}
+            warningActions={layoutAdvice.actions.map((action) => ({
+              label: action.label,
+              onClick: () => {
+                action.apply();
+                setStatusMessage(`${action.label} applied.`);
+              }
+            }))}
             disabled={isBusy}
             onPresetNameChange={setPresetName}
             onSavePreset={handleSavePreset}

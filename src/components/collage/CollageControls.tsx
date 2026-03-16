@@ -37,6 +37,7 @@ interface CollageControlsProps {
   presetName: string;
   savedPresets: CollageSavedPreset[];
   layoutWarning: string | null;
+  warningActions: Array<{ label: string; onClick: () => void }>;
   disabled?: boolean;
   onPresetNameChange: (value: string) => void;
   onSavePreset: () => void;
@@ -51,6 +52,7 @@ export function CollageControls({
   presetName,
   savedPresets,
   layoutWarning,
+  warningActions,
   disabled = false,
   onPresetNameChange,
   onSavePreset,
@@ -137,6 +139,21 @@ export function CollageControls({
           <div className="field field-full collage-warning" role="status">
             <span>Heads up</span>
             <p className="helper-text">{layoutWarning}</p>
+            {warningActions.length > 0 ? (
+              <div className="warning-actions">
+                {warningActions.map((action) => (
+                  <button
+                    key={action.label}
+                    type="button"
+                    className="ghost-button warning-action-button"
+                    onClick={action.onClick}
+                    disabled={disabled}
+                  >
+                    {action.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
         ) : null}
 
