@@ -1,12 +1,27 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CollageMaker } from './components/collage/CollageMaker';
 import { WatermarkTool } from './components/watermark/WatermarkTool';
+import { ACTIVE_TOOL_STORAGE_KEY } from './constants';
 
 type ToolKey = 'watermark' | 'collage';
 
+function loadStoredTool(): ToolKey {
+  if (typeof window === 'undefined') {
+    return 'watermark';
+  }
+
+  return window.localStorage.getItem(ACTIVE_TOOL_STORAGE_KEY) === 'collage'
+    ? 'collage'
+    : 'watermark';
+}
+
 export default function App() {
   const logoUrl = `${import.meta.env.BASE_URL}icon.svg`;
-  const [activeTool, setActiveTool] = useState<ToolKey>('watermark');
+  const [activeTool, setActiveTool] = useState<ToolKey>(loadStoredTool);
+
+  useEffect(() => {
+    window.localStorage.setItem(ACTIVE_TOOL_STORAGE_KEY, activeTool);
+  }, [activeTool]);
 
   return (
     <div className="app-shell">

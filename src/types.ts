@@ -33,6 +33,12 @@ export interface SavedPreset {
   exportFormat: ExportFormat;
 }
 
+export interface CollageSavedPreset {
+  id: string;
+  name: string;
+  settings: CollageSettings;
+}
+
 export interface ImageAsset {
   file: File;
   objectUrl: string;
