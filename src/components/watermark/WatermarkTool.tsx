@@ -258,6 +258,32 @@ export function WatermarkTool() {
     }
   };
 
+  const handleWatermarkFileSelect = async (file: File) => {
+    setIsBusy(true);
+    setErrorMessage(null);
+    setStatusMessage('Opening watermark image...');
+
+    try {
+      const nextAsset = await loadImageAsset(file);
+      setWatermarkAsset((current) => {
+        if (current?.objectUrl) {
+          URL.revokeObjectURL(current.objectUrl);
+        }
+
+        return nextAsset;
+      });
+      setSettings((current) => ({ ...current, kind: 'image' }));
+      setStatusMessage('Watermark image ready.');
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : 'The watermark image could not be loaded.'
+      );
+      setStatusMessage(null);
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
   const handleSettingChange = <K extends keyof WatermarkSettings>(
     key: K,
     value: WatermarkSettings[K]
@@ -330,6 +356,18 @@ export function WatermarkTool() {
     setConfirmAction(null);
   };
 
+  const handleClearWatermarkImage = () => {
+    setWatermarkAsset((current) => {
+      if (current?.objectUrl) {
+        URL.revokeObjectURL(current.objectUrl);
+      }
+
+      return null;
+    });
+    setSettings((current) => ({ ...current, kind: 'text' }));
+    setStatusMessage('Logo watermark removed.');
+  };
+
   const handleConfirmReset = () => {
     handleReset();
     setConfirmAction(null);
@@ -338,6 +376,11 @@ export function WatermarkTool() {
   const runExport = async (format: ExportFormat, action: 'download' | 'share') => {
     if (!imageAsset || !exportCanvasRef.current) {
       setErrorMessage('Choose a photo before saving.');
+      return;
+    }
+
+    if (settings.kind === 'image' && !watermarkAsset) {
+      setErrorMessage('Choose a logo or icon before saving this watermark.');
       return;
     }
 
@@ -439,6 +482,8 @@ export function WatermarkTool() {
             beforeAfterMode={previewMode}
             presetName={presetName}
             savedPresets={savedPresets}
+            watermarkImageName={watermarkAsset?.name ?? null}
+            hasWatermarkImage={Boolean(watermarkAsset)}
             disabled={isBusy}
             onSettingChange={handleSettingChange}
             onExportFormatChange={setExportFormat}
@@ -447,6 +492,8 @@ export function WatermarkTool() {
             onSavePreset={handleSavePreset}
             onApplyPreset={handleApplyPreset}
             onDeletePreset={handleDeletePreset}
+            onWatermarkImageSelect={handleWatermarkFileSelect}
+            onClearWatermarkImage={handleClearWatermarkImage}
             onReset={() => setConfirmAction('reset')}
           />
 

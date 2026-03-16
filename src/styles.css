@@ -786,6 +786,113 @@ select:disabled {
   background: #f6f1e6;
 }
 
+.watermark-choice-preview {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 14px;
+  border: 1px solid #e1d6c0;
+  background: #f5f0e5;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.watermark-choice-preview-text {
+  font-size: 1.15rem;
+  letter-spacing: 0.03em;
+}
+
+.watermark-choice-preview-image {
+  font-size: 1.4rem;
+}
+
+.watermark-choice-preview-single,
+.watermark-choice-preview-proof {
+  position: relative;
+  overflow: hidden;
+  color: transparent;
+}
+
+.watermark-choice-preview-single::before,
+.watermark-choice-preview-proof::before {
+  content: "";
+  position: absolute;
+  background: #d9a24d;
+  border-radius: 999px;
+}
+
+.watermark-choice-preview-single::before {
+  width: 18px;
+  height: 18px;
+  right: 14px;
+  bottom: 14px;
+}
+
+.watermark-choice-preview-proof::before {
+  width: 18px;
+  height: 120px;
+  transform: rotate(35deg);
+}
+
+.position-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.position-button {
+  min-height: 54px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background:
+    radial-gradient(circle at center, rgba(217, 162, 77, 0.85) 0 5px, transparent 6px),
+    #ffffff;
+}
+
+.position-button.is-active {
+  border-color: var(--accent);
+  background:
+    radial-gradient(circle at center, rgba(217, 162, 77, 0.95) 0 6px, transparent 7px),
+    #f6f1e6;
+}
+
+.watermark-upload-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: #faf8f3;
+}
+
+.watermark-upload-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.watermark-upload-copy strong {
+  font-size: 0.95rem;
+}
+
+.watermark-upload-copy span {
+  color: var(--text-soft);
+  font-size: 0.88rem;
+}
+
+.watermark-upload-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.watermark-upload-actions .secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
 .layout-preview {
   display: grid;
   gap: 4px;
