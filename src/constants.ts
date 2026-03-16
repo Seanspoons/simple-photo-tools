@@ -21,7 +21,7 @@ export const DEFAULT_SETTINGS: WatermarkSettings = {
   opacity: 1,
   size: 6,
   margin: 1.5,
-  proofGap: 18,
+  proofGap: 28,
   proofAngle: 'diagonal',
   bold: false,
   shadow: false,

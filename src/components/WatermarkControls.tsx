@@ -351,8 +351,8 @@ export function WatermarkControls({
               <span>Pattern spacing ({settings.proofGap}%)</span>
               <input
                 type="range"
-                min="4"
-                max="18"
+                min="8"
+                max="40"
                 step="1"
                 value={settings.proofGap}
                 onChange={(event) => onSettingChange('proofGap', parseRangeValue(event))}

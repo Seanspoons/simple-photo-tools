@@ -24,7 +24,7 @@ function getMargin(width: number, height: number, settings: WatermarkSettings): 
 
 function getProofGap(width: number, height: number, settings: WatermarkSettings): number {
   const shorterEdge = Math.min(width, height);
-  return Math.round((shorterEdge * settings.proofGap) / 300);
+  return Math.round((shorterEdge * settings.proofGap) / 120);
 }
 
 function getProofAngle(angle: WatermarkProofAngle): number {
