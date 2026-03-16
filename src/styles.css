@@ -937,36 +937,24 @@ select:disabled {
   color: #d9a24d;
 }
 
-.position-button-icon::before,
-.position-button-icon::after {
+.position-button-icon.is-center::before {
   content: "";
   position: absolute;
-}
-
-.position-button-icon.is-center::before {
   inset: 6px;
   border-radius: 999px;
   background: currentColor;
 }
 
-.position-button-icon:not(.is-center)::before {
-  left: 10px;
-  top: 4px;
-  width: 2px;
-  height: 13px;
+.position-button-icon:not(.is-center) {
   background: currentColor;
-  border-radius: 999px;
-}
-
-.position-button-icon:not(.is-center)::after {
-  top: 3px;
-  left: 7px;
-  width: 8px;
-  height: 8px;
-  border-top: 2px solid currentColor;
-  border-left: 2px solid currentColor;
-  border-top-left-radius: 3px;
-  transform: rotate(45deg);
+  mask-image: url("/arrow.svg");
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: 18px 18px;
+  -webkit-mask-image: url("/arrow.svg");
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: 18px 18px;
 }
 
 .position-button-icon.is-right,

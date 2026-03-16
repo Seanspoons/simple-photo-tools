@@ -39,6 +39,14 @@ function getProofAngle(angle: WatermarkProofAngle): number {
   }
 }
 
+function getFontFamily(settings: WatermarkSettings): string {
+  return settings.fontFamily === 'Roboto'
+    ? '"Roboto", "Segoe UI", Arial, sans-serif'
+    : settings.fontFamily === 'Playwrite US Trad'
+      ? '"Playwrite US Trad", cursive'
+      : settings.fontFamily;
+}
+
 function getTextCoordinates(
   position: WatermarkPosition,
   canvasWidth: number,
@@ -137,6 +145,62 @@ function applyShadow(context: CanvasRenderingContext2D, intensity: number): void
   context.shadowOffsetY = Math.max(1, Math.round(intensity * 0.08));
 }
 
+function createTextStampCanvas(
+  settings: WatermarkSettings,
+  text: string,
+  fontSize: number
+): { canvas: HTMLCanvasElement; width: number; height: number } {
+  const stampCanvas = document.createElement('canvas');
+  const stampContext = stampCanvas.getContext('2d');
+  if (!stampContext) {
+    throw new Error('Canvas rendering is not available in this browser.');
+  }
+
+  const fontWeight = settings.bold ? '700' : '400';
+  const fontFamily = getFontFamily(settings);
+  stampContext.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+  stampContext.textAlign = 'left';
+  stampContext.textBaseline = 'alphabetic';
+
+  const metrics = stampContext.measureText(text);
+  const left = metrics.actualBoundingBoxLeft || 0;
+  const right = metrics.actualBoundingBoxRight || metrics.width;
+  const ascent = metrics.actualBoundingBoxAscent || fontSize * 0.8;
+  const descent = metrics.actualBoundingBoxDescent || fontSize * 0.2;
+  const textWidth = left + right;
+  const textHeight = ascent + descent;
+  const paddingX = settings.showBackground ? Math.round(fontSize * 0.35) : 0;
+  const paddingY = settings.showBackground ? Math.round(fontSize * 0.2) : 0;
+  const radius = Math.round(fontSize * 0.35);
+
+  stampCanvas.width = Math.ceil(textWidth + paddingX * 2);
+  stampCanvas.height = Math.ceil(textHeight + paddingY * 2);
+
+  stampContext.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+  stampContext.textAlign = 'left';
+  stampContext.textBaseline = 'alphabetic';
+
+  if (settings.showBackground) {
+    stampContext.fillStyle = 'rgba(0, 0, 0, 0.28)';
+    stampContext.beginPath();
+    stampContext.roundRect(0, 0, stampCanvas.width, stampCanvas.height, radius);
+    stampContext.fill();
+  }
+
+  if (settings.shadow) {
+    applyShadow(stampContext, fontSize);
+  }
+
+  stampContext.fillStyle = settings.color;
+  stampContext.fillText(text, paddingX + left, paddingY + ascent);
+
+  return {
+    canvas: stampCanvas,
+    width: stampCanvas.width,
+    height: stampCanvas.height
+  };
+}
+
 function drawSingleTextWatermark(
   context: CanvasRenderingContext2D,
   canvasWidth: number,
@@ -146,12 +210,7 @@ function drawSingleTextWatermark(
 ): void {
   const fontSize = getFontSize(canvasWidth, canvasHeight, settings);
   const fontWeight = settings.bold ? '700' : '400';
-  const fontFamily =
-    settings.fontFamily === 'Roboto'
-      ? '"Roboto", "Segoe UI", Arial, sans-serif'
-      : settings.fontFamily === 'Playwrite US Trad'
-        ? '"Playwrite US Trad", cursive'
-        : settings.fontFamily;
+  const fontFamily = getFontFamily(settings);
   context.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
   context.textAlign = 'left';
   context.textBaseline = 'alphabetic';
@@ -238,25 +297,10 @@ function drawProofTextWatermark(
   text: string
 ): void {
   const fontSize = getFontSize(canvasWidth, canvasHeight, settings);
-  const fontWeight = settings.bold ? '700' : '400';
-  const fontFamily =
-    settings.fontFamily === 'Roboto'
-      ? '"Roboto", "Segoe UI", Arial, sans-serif'
-      : settings.fontFamily === 'Playwrite US Trad'
-        ? '"Playwrite US Trad", cursive'
-        : settings.fontFamily;
-  context.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
-  context.textAlign = 'left';
-  context.textBaseline = 'alphabetic';
-
-  const metrics = context.measureText(text);
-  const textWidth = metrics.width || fontSize * Math.max(text.length * 0.55, 1);
-  const ascent = metrics.actualBoundingBoxAscent || fontSize * 0.8;
-  const descent = metrics.actualBoundingBoxDescent || fontSize * 0.2;
-  const textHeight = ascent + descent;
+  const stamp = createTextStampCanvas(settings, text, fontSize);
   const gap = getProofGap(canvasWidth, canvasHeight, settings);
-  const stepX = textWidth + gap;
-  const stepY = textHeight + gap;
+  const stepX = stamp.width + gap;
+  const stepY = stamp.height + gap;
   const extra = Math.ceil(Math.hypot(canvasWidth, canvasHeight) * 0.35);
   const angle = getProofAngle(settings.proofAngle);
   let row = 0;
@@ -268,29 +312,10 @@ function drawProofTextWatermark(
       context.rotate(angle);
 
       if (settings.shadow) {
-        applyShadow(context, fontSize);
+        applyShadow(context, Math.max(stamp.width, stamp.height));
       }
 
-      if (settings.showBackground) {
-        const paddingX = Math.round(fontSize * 0.35);
-        const paddingY = Math.round(fontSize * 0.2);
-        const radius = Math.round(fontSize * 0.35);
-        context.fillStyle = 'rgba(0, 0, 0, 0.28)';
-        context.beginPath();
-        context.roundRect(
-          -textWidth / 2 - paddingX,
-          -textHeight / 2 - paddingY,
-          textWidth + paddingX * 2,
-          textHeight + paddingY * 2,
-          radius
-        );
-        context.fill();
-      }
-
-      context.fillStyle = settings.color;
-      context.textAlign = 'center';
-      context.textBaseline = 'middle';
-      context.fillText(text, 0, 0);
+      context.drawImage(stamp.canvas, -stamp.width / 2, -stamp.height / 2, stamp.width, stamp.height);
       context.restore();
     }
     row += 1;
