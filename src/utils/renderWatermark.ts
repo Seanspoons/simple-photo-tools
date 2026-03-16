@@ -84,15 +84,17 @@ export function renderWatermarkedImage({
         : settings.fontFamily;
   context.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
   context.textAlign = 'left';
-  context.textBaseline = 'top';
+  context.textBaseline = 'alphabetic';
 
   const metrics = context.measureText(text);
+  const left = metrics.actualBoundingBoxLeft || 0;
+  const right = metrics.actualBoundingBoxRight || metrics.width;
   const ascent = metrics.actualBoundingBoxAscent || fontSize * 0.8;
   const descent = metrics.actualBoundingBoxDescent || fontSize * 0.2;
-  const textWidth = metrics.width;
+  const textWidth = left + right;
   const textHeight = ascent + descent;
   const margin = getMargin(width, height, settings);
-  const { x, y } = getTextCoordinates(
+  const { x: textBoxX, y: textBoxY } = getTextCoordinates(
     settings.position,
     width,
     height,
@@ -100,6 +102,8 @@ export function renderWatermarkedImage({
     textWidth,
     textHeight
   );
+  const textX = textBoxX + left;
+  const textY = textBoxY + ascent;
 
   context.save();
   context.globalAlpha = clamp(settings.opacity, 0.05, 1);
@@ -108,8 +112,8 @@ export function renderWatermarkedImage({
     const paddingX = Math.round(fontSize * 0.35);
     const paddingY = Math.round(fontSize * 0.2);
     const radius = Math.round(fontSize * 0.35);
-    const boxX = x - paddingX;
-    const boxY = y - paddingY;
+    const boxX = textBoxX - paddingX;
+    const boxY = textBoxY - paddingY;
     const boxWidth = textWidth + paddingX * 2;
     const boxHeight = textHeight + paddingY * 2;
 
@@ -127,6 +131,6 @@ export function renderWatermarkedImage({
   }
 
   context.fillStyle = settings.color;
-  context.fillText(text, x, y);
+  context.fillText(text, textX, textY);
   context.restore();
 }
