@@ -1,4 +1,4 @@
-import { ChangeEvent, useId } from 'react';
+import { ChangeEvent, type CSSProperties, useId } from 'react';
 import { FONT_OPTIONS } from '../constants';
 import {
   SavedPreset,
@@ -10,14 +10,12 @@ import {
 
 interface WatermarkControlsProps {
   settings: WatermarkSettings;
-  beforeAfterMode: 'after' | 'before';
   presetName: string;
   savedPresets: SavedPreset[];
   watermarkImageName?: string | null;
   hasWatermarkImage: boolean;
   disabled?: boolean;
   onSettingChange: <K extends keyof WatermarkSettings>(key: K, value: WatermarkSettings[K]) => void;
-  onBeforeAfterChange: (mode: 'after' | 'before') => void;
   onPresetNameChange: (value: string) => void;
   onSavePreset: () => void;
   onApplyPreset: (presetId: string) => void;
@@ -27,16 +25,21 @@ interface WatermarkControlsProps {
   onReset: () => void;
 }
 
-const POSITION_OPTIONS: Array<{ label: string; value: WatermarkPosition; iconClass: string }> = [
-  { label: 'Top left', value: 'top-left', iconClass: 'is-up-left' },
-  { label: 'Top center', value: 'top-center', iconClass: 'is-up' },
-  { label: 'Top right', value: 'top-right', iconClass: 'is-up-right' },
-  { label: 'Center left', value: 'center-left', iconClass: 'is-left' },
+const POSITION_OPTIONS: Array<{
+  label: string;
+  value: WatermarkPosition;
+  iconClass: string;
+  rotation?: string;
+}> = [
+  { label: 'Top left', value: 'top-left', iconClass: 'is-arrow', rotation: '-135deg' },
+  { label: 'Top center', value: 'top-center', iconClass: 'is-arrow', rotation: '-90deg' },
+  { label: 'Top right', value: 'top-right', iconClass: 'is-arrow', rotation: '-45deg' },
+  { label: 'Center left', value: 'center-left', iconClass: 'is-arrow', rotation: '180deg' },
   { label: 'Center', value: 'center', iconClass: 'is-center' },
-  { label: 'Center right', value: 'center-right', iconClass: 'is-right' },
-  { label: 'Bottom left', value: 'bottom-left', iconClass: 'is-down-left' },
-  { label: 'Bottom center', value: 'bottom-center', iconClass: 'is-down' },
-  { label: 'Bottom right', value: 'bottom-right', iconClass: 'is-down-right' }
+  { label: 'Center right', value: 'center-right', iconClass: 'is-arrow', rotation: '0deg' },
+  { label: 'Bottom left', value: 'bottom-left', iconClass: 'is-arrow', rotation: '135deg' },
+  { label: 'Bottom center', value: 'bottom-center', iconClass: 'is-arrow', rotation: '90deg' },
+  { label: 'Bottom right', value: 'bottom-right', iconClass: 'is-arrow', rotation: '45deg' }
 ];
 
 const LAYOUT_OPTIONS: Array<{ label: string; value: WatermarkLayout; description: string }> = [
@@ -68,14 +71,12 @@ function usesEdgeMargin(position: WatermarkPosition): boolean {
 
 export function WatermarkControls({
   settings,
-  beforeAfterMode,
   presetName,
   savedPresets,
   watermarkImageName,
   hasWatermarkImage,
   disabled = false,
   onSettingChange,
-  onBeforeAfterChange,
   onPresetNameChange,
   onSavePreset,
   onApplyPreset,
@@ -323,7 +324,15 @@ export function WatermarkControls({
                     disabled={disabled}
                     aria-pressed={settings.position === option.value}
                   >
-                    <span className={`position-button-icon ${option.iconClass}`} aria-hidden="true" />
+                    <span
+                      className={`position-button-icon ${option.iconClass}`}
+                      style={
+                        option.rotation
+                          ? ({ '--arrow-rotation': option.rotation } as CSSProperties)
+                          : undefined
+                      }
+                      aria-hidden="true"
+                    />
                     <span className="sr-only">{option.label}</span>
                   </button>
                 ))}
@@ -440,29 +449,6 @@ export function WatermarkControls({
           ) : null}
         </fieldset>
 
-        <fieldset className="toggle-row field-full">
-          <legend>Compare</legend>
-          <label className="check-field">
-            <input
-              type="radio"
-              name="preview-mode"
-              checked={beforeAfterMode === 'after'}
-              onChange={() => onBeforeAfterChange('after')}
-              disabled={disabled}
-            />
-            <span>After</span>
-          </label>
-          <label className="check-field">
-            <input
-              type="radio"
-              name="preview-mode"
-              checked={beforeAfterMode === 'before'}
-              onChange={() => onBeforeAfterChange('before')}
-              disabled={disabled}
-            />
-            <span>Before</span>
-          </label>
-        </fieldset>
       </div>
     </section>
   );

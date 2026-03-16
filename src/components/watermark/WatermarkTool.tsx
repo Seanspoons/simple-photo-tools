@@ -480,6 +480,8 @@ export function WatermarkTool() {
               hasImage={Boolean(imageAsset)}
               beforeAfterMode={previewMode}
               dimensions={imageAsset ? { width: imageAsset.width, height: imageAsset.height } : undefined}
+              disabled={isBusy}
+              onBeforeAfterChange={setPreviewMode}
             />
           </div>
         </div>
@@ -487,14 +489,12 @@ export function WatermarkTool() {
         <div className="right-column">
           <WatermarkControls
             settings={settings}
-            beforeAfterMode={previewMode}
             presetName={presetName}
             savedPresets={savedPresets}
             watermarkImageName={watermarkAsset?.name ?? null}
             hasWatermarkImage={Boolean(watermarkAsset)}
             disabled={isBusy}
             onSettingChange={handleSettingChange}
-            onBeforeAfterChange={setPreviewMode}
             onPresetNameChange={setPresetName}
             onSavePreset={handleSavePreset}
             onApplyPreset={handleApplyPreset}
