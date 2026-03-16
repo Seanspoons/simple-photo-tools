@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { CollageSettings, ImageAsset } from '../../types';
 import { createDownloadFilename, exportCanvasToBlob, triggerDownload } from '../../utils/exportImage';
 import { loadImageAsset } from '../../utils/imageLoader';
-import { getCollageOutputSize, renderUniformCollage } from '../../utils/collage/renderCollage';
+import { getCollageOutputSize, renderCollage } from '../../utils/collage/renderCollage';
 import { CollageControls } from './CollageControls';
 import { CollagePreview } from './CollagePreview';
 import { CollageUploadPanel } from './CollageUploadPanel';
@@ -39,14 +39,14 @@ export function CollageMaker() {
     return `${images.length} photos ready for your collage.`;
   }, [images.length]);
 
-  const canBuildUniformCollage = images.length >= 2 && settings.layoutMode === 'uniform';
+  const canBuildCollage = images.length >= 2;
   const previewHelperText =
     settings.layoutMode === 'featured'
-      ? 'Featured layouts are coming next. Switch to Uniform Grid for a live collage now.'
-      : 'Uniform Grid is ready. Featured layouts land in the next step.';
+      ? 'The first photo becomes the featured image. Use the buttons below to move another photo to the front.'
+      : 'Uniform Grid keeps all photos evenly balanced.';
 
   useEffect(() => {
-    if (!canBuildUniformCollage || !previewCanvasRef.current) {
+    if (!canBuildCollage || !previewCanvasRef.current) {
       return;
     }
 
@@ -54,11 +54,11 @@ export function CollageMaker() {
     const maxPreviewWidth = 960;
     const scale = Math.min(maxPreviewWidth / outputSize.width, 1);
 
-    renderUniformCollage(previewCanvasRef.current, images, settings, {
+    renderCollage(previewCanvasRef.current, images, settings, {
       width: Math.round(outputSize.width * scale),
       height: Math.round(outputSize.height * scale)
     });
-  }, [canBuildUniformCollage, images, settings]);
+  }, [canBuildCollage, images, settings]);
 
   useEffect(() => {
     imagesRef.current = images;
@@ -113,9 +113,51 @@ export function CollageMaker() {
     setStatusMessage('Collage settings reset.');
   };
 
+  const handleRemoveImage = (index: number) => {
+    setImages((current) => {
+      const nextImages = [...current];
+      const [removed] = nextImages.splice(index, 1);
+      if (removed) {
+        URL.revokeObjectURL(removed.objectUrl);
+      }
+
+      return nextImages;
+    });
+    setStatusMessage('Photo removed.');
+  };
+
+  const handleMoveImage = (index: number, direction: -1 | 1) => {
+    setImages((current) => {
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= current.length) {
+        return current;
+      }
+
+      const nextImages = [...current];
+      const [selected] = nextImages.splice(index, 1);
+      nextImages.splice(targetIndex, 0, selected);
+      return nextImages;
+    });
+    setStatusMessage('Photo order updated.');
+  };
+
+  const handleSetFeatured = (index: number) => {
+    setImages((current) => {
+      if (index <= 0 || index >= current.length) {
+        return current;
+      }
+
+      const nextImages = [...current];
+      const [selected] = nextImages.splice(index, 1);
+      nextImages.unshift(selected);
+      return nextImages;
+    });
+    setStatusMessage('Featured photo updated.');
+  };
+
   const handleExport = async (format: 'jpeg' | 'png') => {
-    if (!canBuildUniformCollage || !exportCanvasRef.current) {
-      setErrorMessage('Switch to Uniform Grid and add at least 2 photos before saving.');
+    if (!canBuildCollage || !exportCanvasRef.current) {
+      setErrorMessage('Add at least 2 photos before saving.');
       return;
     }
 
@@ -124,9 +166,9 @@ export function CollageMaker() {
     setStatusMessage('Getting your collage ready...');
 
     try {
-      renderUniformCollage(exportCanvasRef.current, images, settings);
+      renderCollage(exportCanvasRef.current, images, settings);
       const blob = await exportCanvasToBlob(exportCanvasRef.current, format, 0.94);
-      triggerDownload(blob, createDownloadFilename('collage', format));
+      triggerDownload(blob, createDownloadFilename('collage', format).replace('-watermarked', ''));
       setStatusMessage(`collage.${format === 'jpeg' ? 'jpg' : 'png'} is ready.`);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'The collage could not be exported.');
@@ -172,7 +214,7 @@ export function CollageMaker() {
             canvasRef={previewCanvasRef}
             hasImages={images.length > 0}
             imageCount={images.length}
-            canBuild={canBuildUniformCollage}
+            canBuild={canBuildCollage}
             helperText={previewHelperText}
           />
         </div>
@@ -194,10 +236,44 @@ export function CollageMaker() {
             </div>
             {images.length > 0 ? (
               <div className="thumb-list">
-                {images.map((image) => (
+                {images.map((image, index) => (
                   <div key={image.objectUrl} className="thumb-card">
                     <img src={image.objectUrl} alt={image.name} className="thumb-image" />
                     <p className="thumb-label">{image.name}</p>
+                    <div className="thumb-actions">
+                      <button
+                        type="button"
+                        className="thumb-action-button"
+                        onClick={() => handleMoveImage(index, -1)}
+                        disabled={index === 0 || isBusy}
+                      >
+                        Move Earlier
+                      </button>
+                      <button
+                        type="button"
+                        className="thumb-action-button"
+                        onClick={() => handleMoveImage(index, 1)}
+                        disabled={index === images.length - 1 || isBusy}
+                      >
+                        Move Later
+                      </button>
+                      <button
+                        type="button"
+                        className="thumb-action-button"
+                        onClick={() => handleSetFeatured(index)}
+                        disabled={index === 0 || isBusy}
+                      >
+                        Use as Feature
+                      </button>
+                      <button
+                        type="button"
+                        className="thumb-action-button is-danger"
+                        onClick={() => handleRemoveImage(index)}
+                        disabled={isBusy}
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -218,7 +294,7 @@ export function CollageMaker() {
                 type="button"
                 className="primary-button"
                 onClick={() => handleExport('jpeg')}
-                disabled={!canBuildUniformCollage || isBusy}
+                disabled={!canBuildCollage || isBusy}
               >
                 Save JPEG
               </button>
@@ -226,14 +302,12 @@ export function CollageMaker() {
                 type="button"
                 className="secondary-button"
                 onClick={() => handleExport('png')}
-                disabled={!canBuildUniformCollage || isBusy}
+                disabled={!canBuildCollage || isBusy}
               >
                 Save PNG
               </button>
             </div>
-            <p className="helper-text">
-              Uniform Grid exports at the full preset size. Featured layout export lands next.
-            </p>
+            <p className="helper-text">Collages export at the full preset size in either layout mode.</p>
           </section>
         </div>
       </section>
