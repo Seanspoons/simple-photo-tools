@@ -803,8 +803,20 @@ export function CollageMaker() {
 
       {errorMessage || statusMessage ? (
         <div className="floating-message-stack">
-          {errorMessage ? <FloatingMessage tone="error" message={errorMessage} /> : null}
-          {statusMessage ? <FloatingMessage tone="status" message={statusMessage} /> : null}
+          {errorMessage ? (
+            <FloatingMessage
+              tone="error"
+              message={errorMessage}
+              onDismiss={() => setErrorMessage(null)}
+            />
+          ) : null}
+          {statusMessage ? (
+            <FloatingMessage
+              tone="status"
+              message={statusMessage}
+              onDismiss={() => setStatusMessage(null)}
+            />
+          ) : null}
         </div>
       ) : null}
 
