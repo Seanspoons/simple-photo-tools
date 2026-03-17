@@ -49,8 +49,7 @@ interface CollagePreviewProps {
   onTileSelect?: (index: number) => void;
   onTileDragStart?: (index: number) => void;
   onTileDragEnter?: (index: number) => void;
-  onTileDrop?: (index: number) => void;
-  onEmptySlotDrop?: (column: number, row: number) => void;
+  onTileDropAt?: (column: number, row: number) => void;
   onTileDragEnd?: () => void;
   onTileResizePreview?: (
     index: number,
@@ -92,8 +91,7 @@ export function CollagePreview({
   onTileSelect,
   onTileDragStart,
   onTileDragEnter,
-  onTileDrop,
-  onEmptySlotDrop,
+  onTileDropAt,
   onTileDragEnd,
   onTileResizePreview,
   onTileResizeCommit,
@@ -109,6 +107,7 @@ export function CollagePreview({
     colSpan: number;
     rowSpan: number;
   } | null>(null);
+  const dragOffsetRef = useRef<{ column: number; row: number }>({ column: 0, row: 0 });
   const resizeStateRef = useRef<{
     index: number;
     pointerId: number;
@@ -307,7 +306,44 @@ export function CollagePreview({
         };
   }, [backgroundColor]);
 
-  const handleTileDragStart = (event: DragEvent<HTMLDivElement>, index: number) => {
+  const getGuideCellFromPointer = (clientX: number, clientY: number) => {
+    const shellRect = shellRef.current?.getBoundingClientRect();
+    if (!shellRect) {
+      return null;
+    }
+
+    const relativeX = clientX - shellRect.left;
+    const relativeY = clientY - shellRect.top;
+
+    return (
+      scaledGridGuides.find(
+        (guide) =>
+          relativeX >= guide.x &&
+          relativeX <= guide.x + guide.width &&
+          relativeY >= guide.y &&
+          relativeY <= guide.y + guide.height
+      ) ?? null
+    );
+  };
+
+  const getAnchorFromTarget = (
+    column: number,
+    row: number,
+    colSpan: number,
+    _rowSpan: number
+  ) => ({
+    column: Math.max(
+      0,
+      Math.min(MAX_COLLAGE_COLUMNS - colSpan, column - dragOffsetRef.current.column)
+    ),
+    row: Math.max(0, row - dragOffsetRef.current.row)
+  });
+
+  const handleTileDragStart = (
+    event: DragEvent<HTMLDivElement>,
+    index: number,
+    cell: (typeof scaledCells)[number]
+  ) => {
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/plain', String(index));
 
@@ -332,6 +368,14 @@ export function CollagePreview({
       event.dataTransfer.setDragImage(dragImage, 48, 48);
     }
 
+    const guideCell = getGuideCellFromPointer(event.clientX, event.clientY);
+    dragOffsetRef.current = guideCell
+      ? {
+          column: Math.max(0, Math.min(cell.colSpan - 1, guideCell.column - cell.column)),
+          row: Math.max(0, Math.min(cell.rowSpan - 1, guideCell.row - cell.row))
+        }
+      : { column: 0, row: 0 };
+
     setHoveredEmptySlot(null);
     onTileDragStart?.(index);
   };
@@ -343,6 +387,7 @@ export function CollagePreview({
     }
 
     setHoveredEmptySlot(null);
+    dragOffsetRef.current = { column: 0, row: 0 };
     onTileDragEnd?.();
   };
 
@@ -356,12 +401,12 @@ export function CollagePreview({
       return null;
     }
 
-    const anchor =
+    const anchorSource =
       hoveredEmptySlot ??
       scaledCells.find((cell) => cell.index === dropTargetIndex) ??
       null;
 
-    if (!anchor) {
+    if (!anchorSource) {
       return null;
     }
 
@@ -378,6 +423,13 @@ export function CollagePreview({
     const scaledGapY = gap * scaleY;
     const offsetX = ((canvas.width - previewMetrics.gridWidth) / 2) * scaleX;
     const offsetY = ((canvas.height - previewMetrics.gridHeight) / 2) * scaleY;
+
+    const anchor = getAnchorFromTarget(
+      anchorSource.column,
+      anchorSource.row,
+      draggedCell.colSpan,
+      draggedCell.rowSpan
+    );
 
     return {
       x: offsetX + anchor.column * (cellWidth + scaledGapX),
@@ -398,9 +450,10 @@ export function CollagePreview({
     scaledCells
   ]);
 
-  const handleEmptySlotDrop = (column: number, row: number) => {
+  const handleEmptySlotDrop = (column: number, row: number, colSpan = 1, rowSpan = 1) => {
     setHoveredEmptySlot(null);
-    onEmptySlotDrop?.(column, row);
+    const anchor = getAnchorFromTarget(column, row, colSpan, rowSpan);
+    onTileDropAt?.(anchor.column, anchor.row);
   };
 
   const getPointerDropTarget = (clientX: number, clientY: number) => {
@@ -422,7 +475,12 @@ export function CollagePreview({
     );
 
     if (cellTarget) {
-      return { type: 'cell' as const, index: cellTarget.index };
+      return {
+        type: 'cell' as const,
+        index: cellTarget.index,
+        column: cellTarget.column,
+        row: cellTarget.row
+      };
     }
 
     const emptyTarget = emptyGridGuides.find(
@@ -440,13 +498,24 @@ export function CollagePreview({
     return null;
   };
 
-  const handleTouchDragStart = (event: ReactPointerEvent<HTMLDivElement>, index: number) => {
+  const handleTouchDragStart = (
+    event: ReactPointerEvent<HTMLDivElement>,
+    index: number,
+    cell: (typeof scaledCells)[number]
+  ) => {
     if (!allowTouchMove || event.pointerType === 'mouse') {
       return;
     }
 
     event.preventDefault();
     event.stopPropagation();
+    const guideCell = getGuideCellFromPointer(event.clientX, event.clientY);
+    dragOffsetRef.current = guideCell
+      ? {
+          column: Math.max(0, Math.min(cell.colSpan - 1, guideCell.column - cell.column)),
+          row: Math.max(0, Math.min(cell.rowSpan - 1, guideCell.row - cell.row))
+        }
+      : { column: 0, row: 0 };
     touchDragStateRef.current = { index, pointerId: event.pointerId };
     setHoveredEmptySlot(null);
     onTileSelect?.(index);
@@ -490,7 +559,13 @@ export function CollagePreview({
     }
 
     if (target?.type === 'cell') {
-      onTileDrop?.(target.index);
+      const draggedCell = scaledCells.find((cell) => cell.index === touchState.index);
+      handleEmptySlotDrop(
+        target.column,
+        target.row,
+        draggedCell?.colSpan ?? 1,
+        draggedCell?.rowSpan ?? 1
+      );
     } else if (target?.type === 'empty') {
       handleEmptySlotDrop(target.column, target.row);
     } else {
@@ -500,6 +575,7 @@ export function CollagePreview({
     touchDragStateRef.current = null;
     setHoveredIndex(null);
     setHoveredEmptySlot(null);
+    dragOffsetRef.current = { column: 0, row: 0 };
   };
 
   const handleTouchDragCancel = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -515,6 +591,7 @@ export function CollagePreview({
     touchDragStateRef.current = null;
     setHoveredIndex(null);
     setHoveredEmptySlot(null);
+    dragOffsetRef.current = { column: 0, row: 0 };
     onTileDragEnd?.();
   };
 
@@ -781,15 +858,15 @@ export function CollagePreview({
                           onTileSelect?.(index);
                         }
                       }}
-                      onDragStart={(event) => handleTileDragStart(event, index)}
+                      onDragStart={(event) => handleTileDragStart(event, index, cell)}
                       onDragEnter={() => {
                         setHoveredEmptySlot(null);
                         onTileDragEnter?.(index);
                       }}
                       onDragOver={(event) => event.preventDefault()}
-                      onDrop={() => onTileDrop?.(index)}
+                      onDrop={() => handleEmptySlotDrop(cell.column, cell.row, cell.colSpan, cell.rowSpan)}
                       onDragEnd={handleTileDragEnd}
-                      onPointerDown={(event) => handleTouchDragStart(event, index)}
+                      onPointerDown={(event) => handleTouchDragStart(event, index, cell)}
                       onPointerMove={handleTouchDragMove}
                       onPointerUp={handleTouchDragEnd}
                       onPointerCancel={handleTouchDragCancel}

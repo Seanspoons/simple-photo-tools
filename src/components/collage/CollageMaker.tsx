@@ -143,6 +143,24 @@ function cloneTiles(tiles: CollageTile[]) {
   return tiles.map((tile) => ({ ...tile }));
 }
 
+function tilesOverlap(
+  aColumn: number,
+  aRow: number,
+  aColSpan: number,
+  aRowSpan: number,
+  bColumn: number,
+  bRow: number,
+  bColSpan: number,
+  bRowSpan: number
+) {
+  return !(
+    aColumn + aColSpan <= bColumn ||
+    bColumn + bColSpan <= aColumn ||
+    aRow + aRowSpan <= bRow ||
+    bRow + bRowSpan <= aRow
+  );
+}
+
 function createHistoryEntry(tiles: CollageTile[], settings: CollageSettings): CollageHistoryEntry {
   return {
     settings: { ...settings },
@@ -1080,72 +1098,62 @@ export function CollageMaker() {
     }
   };
 
-  const handlePreviewDrop = (index: number) => {
-    if (draggedIndex === null || draggedIndex === index) {
-      handleDragEnd();
-      return;
-    }
-
+  const moveTileToAnchor = (index: number, column: number, row: number) => {
     const anchoredTiles = anchorTilesToCurrentLayout(tilesStateRef.current);
-    const draggedTile = anchoredTiles[draggedIndex];
-    const targetTile = anchoredTiles[index];
-
-    if (!draggedTile || !targetTile) {
+    const movingTile = anchoredTiles[index];
+    if (!movingTile) {
       handleDragEnd();
       return;
     }
 
+    const nextColumn = Math.max(
+      0,
+      Math.min(MAX_COLLAGE_COLUMNS - movingTile.colSpan, column)
+    );
+    const nextRow = Math.max(0, row);
     const nextTiles = anchoredTiles.map((tile, tileIndex) => {
-      if (tileIndex === draggedIndex) {
-        return {
-          ...tile,
-          gridColumn: targetTile.gridColumn,
-          gridRow: targetTile.gridRow
-        };
-      }
-
       if (tileIndex === index) {
         return {
           ...tile,
-          gridColumn: draggedTile.gridColumn,
-          gridRow: draggedTile.gridRow
+          gridColumn: nextColumn,
+          gridRow: nextRow
+        };
+      }
+
+      if (
+        tile.gridColumn !== null &&
+        tile.gridRow !== null &&
+        tilesOverlap(
+          nextColumn,
+          nextRow,
+          movingTile.colSpan,
+          movingTile.rowSpan,
+          tile.gridColumn,
+          tile.gridRow,
+          tile.colSpan,
+          tile.rowSpan
+        )
+      ) {
+        return {
+          ...tile,
+          gridColumn: null,
+          gridRow: null
         };
       }
 
       return tile;
     });
-    pushHistoryEntry(nextTiles, settingsStateRef.current);
-    setTiles(nextTiles);
-    setSelectedImageIndex(index);
-    setStatusMessage('Preview order updated.');
-    handleDragEnd();
-  };
-
-  const handlePreviewEmptyDrop = (column: number, row: number) => {
-    if (draggedIndex === null) {
-      handleDragEnd();
-      return;
-    }
-
-    const anchoredTiles = anchorTilesToCurrentLayout(tilesStateRef.current);
-    const nextTiles = anchoredTiles.map((tile, index) =>
-      index === draggedIndex
-        ? {
-            ...tile,
-            gridColumn: column,
-            gridRow: row
-          }
-        : tile
-    );
     const nextSettings = {
       ...settingsStateRef.current,
-      columns: Math.max(settingsStateRef.current.columns, Math.min(MAX_COLLAGE_COLUMNS, column + 1))
+      columns: Math.max(
+        settingsStateRef.current.columns,
+        Math.min(MAX_COLLAGE_COLUMNS, nextColumn + movingTile.colSpan)
+      )
     };
     pushHistoryEntry(nextTiles, nextSettings);
     setTiles(nextTiles);
     setSettings(nextSettings);
-
-    setSelectedImageIndex(draggedIndex);
+    setSelectedImageIndex(index);
     setStatusMessage('Photo moved.');
     handleDragEnd();
   };
@@ -1291,8 +1299,14 @@ export function CollageMaker() {
               onTileSelect={setSelectedImageIndex}
               onTileDragStart={handleDragStart}
               onTileDragEnter={handleDragEnter}
-              onTileDrop={handlePreviewDrop}
-              onEmptySlotDrop={handlePreviewEmptyDrop}
+              onTileDropAt={(column, row) => {
+                if (draggedIndex === null) {
+                  handleDragEnd();
+                  return;
+                }
+
+                moveTileToAnchor(draggedIndex, column, row);
+              }}
               onTileDragEnd={handleDragEnd}
               onTileResizePreview={handleResizePreview}
               onTileResizeCommit={handleResizeCommit}
