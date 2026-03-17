@@ -46,7 +46,8 @@ interface CollageHistoryEntry {
 }
 
 const DEFAULT_COLLAGE_SETTINGS: CollageSettings = {
-  sizePreset: 'instagram-square',
+  shapePreset: 'square',
+  qualityPreset: 'standard',
   columns: 3,
   gap: 12,
   backgroundColor: '#ffffff',
@@ -134,7 +135,7 @@ function getRecommendedSettings(
   return {
     ...currentSettings,
     columns: nextColumns,
-    sizePreset: shouldUseHighRes ? 'high-res-square' : currentSettings.sizePreset
+    qualityPreset: shouldUseHighRes ? 'hd' : currentSettings.qualityPreset
   };
 }
 
@@ -420,11 +421,11 @@ export function CollageMaker() {
               }))
           },
           {
-            label: 'Use High Res',
+            label: 'Use HD',
             apply: () =>
               setSettings((current) => ({
                 ...current,
-                sizePreset: 'high-res-square'
+                qualityPreset: 'hd'
               }))
           }
         ]
@@ -652,8 +653,7 @@ export function CollageMaker() {
         };
       });
 
-      const isSquareOutput =
-        settings.sizePreset === 'instagram-square' || settings.sizePreset === 'high-res-square';
+      const isSquareOutput = settings.shapePreset === 'square';
       if (isSquareOutput && nextColumns < settings.columns) {
         const nextMetrics = getCollageLayoutMetrics(compactedTiles, { ...settings, columns: nextColumns });
         if (nextMetrics.rows > nextColumns) {
@@ -662,28 +662,29 @@ export function CollageMaker() {
         }
       }
 
-      const shouldUseHighRes = nextColumns >= 5 && settings.sizePreset === 'instagram-square';
+      const shouldUseHigherQuality =
+        nextColumns >= 5 && settingsStateRef.current.qualityPreset === 'standard';
       const nextSettings = {
         ...settingsStateRef.current,
         [key]: value,
-        sizePreset: shouldUseHighRes ? 'high-res-square' : settingsStateRef.current.sizePreset
+        qualityPreset: shouldUseHigherQuality ? 'hd' : settingsStateRef.current.qualityPreset
       };
       pushHistoryEntry(compactedTiles, nextSettings);
       setTiles(compactedTiles);
       setSettings(nextSettings);
       setStatusMessage(
-        shouldUseHighRes
-          ? `Set the grid to ${nextColumns} columns and switched to High Res for sharper tiles.`
+        shouldUseHigherQuality
+          ? `Set the grid to ${nextColumns} columns and switched to HD for sharper tiles.`
           : `Set the grid to ${nextColumns} columns.`
       );
       return;
     }
 
-    if (key === 'sizePreset' && value === 'instagram-square' && settings.columns >= 5) {
-      const nextSettings = { ...settingsStateRef.current, sizePreset: 'high-res-square' as const };
+    if (key === 'qualityPreset' && value === 'standard' && settings.columns >= 5) {
+      const nextSettings = { ...settingsStateRef.current, qualityPreset: 'hd' as const };
       pushHistoryEntry(tilesStateRef.current, nextSettings);
       setSettings(nextSettings);
-      setStatusMessage('High Res stays on for dense square collages so the tiles stay sharp.');
+      setStatusMessage('HD stays on for dense collages so the tiles stay sharp.');
       return;
     }
 

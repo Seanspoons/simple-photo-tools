@@ -1,5 +1,11 @@
 import { MAX_COLLAGE_COLUMNS } from '../../constants';
-import { CollageFitMode, CollageSettings, CollageTile } from '../../types';
+import {
+  CollageFitMode,
+  CollageQualityPreset,
+  CollageSettings,
+  CollageShapePreset,
+  CollageTile
+} from '../../types';
 
 interface CanvasSize {
   width: number;
@@ -56,15 +62,25 @@ interface PackedTilePlacement {
   rowSpan: number;
 }
 
-const COLLAGE_SIZES: Record<CollageSettings['sizePreset'], CanvasSize> = {
-  'instagram-square': { width: 1080, height: 1080 },
-  'instagram-portrait': { width: 1080, height: 1350 },
-  story: { width: 1080, height: 1920 },
-  'high-res-square': { width: 2160, height: 2160 }
+const COLLAGE_BASE_SIZES: Record<CollageShapePreset, CanvasSize> = {
+  square: { width: 1080, height: 1080 },
+  portrait: { width: 1080, height: 1350 },
+  story: { width: 1080, height: 1920 }
+};
+
+const COLLAGE_QUALITY_SCALE: Record<CollageQualityPreset, number> = {
+  standard: 1,
+  hd: 2,
+  uhd: 3
 };
 
 function getOutputSize(settings: CollageSettings): CanvasSize {
-  return COLLAGE_SIZES[settings.sizePreset];
+  const baseSize = COLLAGE_BASE_SIZES[settings.shapePreset];
+  const scale = COLLAGE_QUALITY_SCALE[settings.qualityPreset];
+  return {
+    width: baseSize.width * scale,
+    height: baseSize.height * scale
+  };
 }
 
 function clamp(value: number, min: number, max: number): number {

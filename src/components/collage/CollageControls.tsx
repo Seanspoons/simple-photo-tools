@@ -1,36 +1,45 @@
 import { MAX_COLLAGE_COLUMNS } from '../../constants';
-import { CollageSavedPreset, CollageSettings } from '../../types';
+import {
+  CollageQualityPreset,
+  CollageSavedPreset,
+  CollageSettings,
+  CollageShapePreset
+} from '../../types';
 
-const SIZE_OPTIONS: Array<{
-  value: CollageSettings['sizePreset'];
+const SHAPE_OPTIONS: Array<{
+  value: CollageShapePreset;
   label: string;
   description: string;
   previewClassName: string;
 }> = [
   {
-    value: 'instagram-square',
+    value: 'square',
     label: 'Square',
-    description: '1080 × 1080',
+    description: '1:1',
     previewClassName: 'output-preview-square'
   },
   {
-    value: 'instagram-portrait',
+    value: 'portrait',
     label: 'Portrait',
-    description: '1080 × 1350',
+    description: '4:5',
     previewClassName: 'output-preview-portrait'
   },
   {
     value: 'story',
     label: 'Story',
-    description: '1080 × 1920',
+    description: '9:16',
     previewClassName: 'output-preview-story'
-  },
-  {
-    value: 'high-res-square',
-    label: 'High Res',
-    description: '2160 × 2160',
-    previewClassName: 'output-preview-square'
   }
+];
+
+const QUALITY_OPTIONS: Array<{
+  value: CollageQualityPreset;
+  label: string;
+  description: string;
+}> = [
+  { value: 'standard', label: 'Standard', description: '1x size' },
+  { value: 'hd', label: 'HD', description: '2x size' },
+  { value: 'uhd', label: 'UHD', description: '3x size' }
 ];
 
 interface CollageControlsProps {
@@ -178,19 +187,41 @@ export function CollageControls({
         ) : null}
 
         <fieldset className="field field-full layout-choice-group">
-          <legend>Output size</legend>
+          <legend>Shape</legend>
           <div className="output-choice-grid">
-            {SIZE_OPTIONS.map((option) => (
+            {SHAPE_OPTIONS.map((option) => (
               <button
                 key={option.value}
                 type="button"
                 className={`output-choice-card ${
-                  settings.sizePreset === option.value ? 'is-active' : ''
+                  settings.shapePreset === option.value ? 'is-active' : ''
                 }`}
-                onClick={() => onChange('sizePreset', option.value)}
+                onClick={() => onChange('shapePreset', option.value)}
                 disabled={disabled}
               >
                 <span className={`output-preview ${option.previewClassName}`} aria-hidden="true" />
+                <span className="choice-card-copy">
+                  <strong>{option.label}</strong>
+                  <span>{option.description}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset className="field field-full layout-choice-group">
+          <legend>Quality</legend>
+          <div className="output-choice-grid quality-choice-grid">
+            {QUALITY_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                className={`output-choice-card ${
+                  settings.qualityPreset === option.value ? 'is-active' : ''
+                }`}
+                onClick={() => onChange('qualityPreset', option.value)}
+                disabled={disabled}
+              >
                 <span className="choice-card-copy">
                   <strong>{option.label}</strong>
                   <span>{option.description}</span>

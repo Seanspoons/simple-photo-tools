@@ -15,11 +15,8 @@ export type WatermarkProofAngle = 'diagonal' | 'reverse-diagonal' | 'horizontal'
 
 export type ExportFormat = 'jpeg' | 'png';
 export type CollageFitMode = 'cover' | 'contain';
-export type CollageSizePreset =
-  | 'instagram-square'
-  | 'instagram-portrait'
-  | 'story'
-  | 'high-res-square';
+export type CollageShapePreset = 'square' | 'portrait' | 'story';
+export type CollageQualityPreset = 'standard' | 'hd' | 'uhd';
 
 export interface WatermarkSettings {
   kind: WatermarkKind;
@@ -88,7 +85,8 @@ export interface RenderWatermarkOptions {
 }
 
 export interface CollageSettings {
-  sizePreset: CollageSizePreset;
+  shapePreset: CollageShapePreset;
+  qualityPreset: CollageQualityPreset;
   columns: number;
   gap: number;
   backgroundColor: string;
