@@ -374,7 +374,7 @@ export function WatermarkTool() {
 
       return null;
     });
-    setSettings((current) => ({ ...current, kind: 'text' }));
+    setErrorMessage(null);
     setStatusMessage('Logo watermark removed.');
   };
 
