@@ -251,8 +251,9 @@ function getPackedTiles(
   let frameRows = chooseFrameRows(safeColumns, rows, outputSize);
 
   if (isSquareOutput) {
-    frameColumns = safeColumns;
-    frameRows = Math.max(frameColumns, rows);
+    const squareSide = Math.max(safeColumns, rows);
+    frameColumns = squareSide;
+    frameRows = squareSide;
   }
 
   const cellSize = Math.min(
