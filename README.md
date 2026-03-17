@@ -1,95 +1,131 @@
 # Photo Watermarker
 
-Photo Watermarker is a small client-side photo tool I built with React, TypeScript, and Vite.
+A privacy-first, client-side image processing tool (PWA) for creating watermarks and collages directly in the browser.
 
-It currently includes two tools:
+Live site: https://photowatermarker.com
 
-- Photo Watermarker
-- Collage Maker
+---
 
-Live site: `https://photowatermarker.com`
+## Overview
 
-## What it does
+Photo Watermarker is a lightweight web app built with React and TypeScript that allows users to:
+
+- Add watermarks to photos
+- Create collages from multiple images
+- Export high-quality images
+
+All processing happens entirely in the browser — no uploads, no accounts, no backend.
+
+---
+
+## Features
 
 ### Photo Watermarker
 
-- Add a text watermark or logo watermark to a photo
-- Choose between a single mark or a repeated proof pattern
-- Adjust position, size, color, opacity, shadow, and background styling
-- Preview the result instantly
-- Save the final image as JPEG or PNG
+- Add **text or image (logo) watermarks**
+- Single watermark or repeated **proof pattern**
+- Customize:
+  - Position
+  - Size
+  - Color
+  - Opacity
+  - Shadow
+  - Background styling
+- Instant preview
+- Export as **JPEG or PNG**
+
+---
 
 ### Collage Maker
 
-- Add multiple photos and build a collage entirely in the browser
-- Use simple layout options instead of a full design editor
-- Reorder photos, choose a main photo when the layout supports it, and preview changes live
-- Export the final collage as JPEG or PNG
+- Upload multiple photos (2–25 images)
+- Generate collages with **simple, guided layouts**
+- Reorder images easily
+- Select a **featured image** when supported by layout
+- Live preview updates
+- Export as **JPEG or PNG**
+
+---
+
+## Technical Highlights
+
+- Fully **client-side image processing** using the Canvas API
+- **No backend** — all images stay on the user’s device
+- **HEIC / HEIF → JPEG conversion** in-browser using `heic2any`
+- Dual rendering approach:
+  - Low-resolution preview canvas for responsiveness
+  - Full-resolution export canvas for final output
+- Handles large images efficiently on modern devices
+- Progressive Web App (PWA) with offline support
+
+---
+
+## Architecture
+
+- React + TypeScript frontend
+- Vite build system
+- Canvas-based rendering pipeline
+- Client-side file handling (Blob, ImageBitmap)
+- No server, no API, no database
+
+---
 
 ## Privacy
 
-This app is meant to be simple and privacy-friendly.
+This app is designed to be privacy-friendly:
 
-Selected images are processed locally in the browser. There is no backend, no image upload to a server, no accounts, and no cloud storage.
+- No image uploads
+- No server processing
+- No accounts or tracking
+- All work is done locally in the browser
 
-## Tech
+---
 
-- React
-- TypeScript
-- Vite
-- Vite PWA plugin
-- Canvas 2D API
-- `heic2any` for browser-side HEIC / HEIF conversion
-
-## Running locally
+## Running Locally
 
 ### Requirements
-
 - Node.js 20+
 - npm
 
 ### Install
-
 ```bash
 npm install
 ```
 
-### Start the dev server
-
+### Start development server
 ```bash
 npm run dev
 ```
 
 ### Build for production
-
 ```bash
 npm run build
 ```
 
+---
+
 ## Notes
 
-- The app works offline after the app shell has been loaded once.
-- HEIC and HEIF images are converted locally in the browser before entering the normal editing flow.
-- Watermark and collage drafts are saved locally so refreshing the page does not immediately wipe progress.
-- Saved looks are also stored locally in the browser.
-- The collage maker currently supports 2 to 25 photos.
+- Works offline after initial load (PWA)
+- HEIC/HEIF images are converted locally before processing
+- Drafts and settings are saved in localStorage
+- Supports both watermarking and collage workflows
+- Optimized for mobile and touch interaction
 
-## GitHub Pages
-
-This repo includes a GitHub Actions workflow for deploying to GitHub Pages.
-
-It is currently set up for the custom domain `photowatermarker.com` and includes a `public/CNAME` file for that domain.
+---
 
 ## Limitations
 
-- The collage maker is intentionally guided rather than a full freeform editor.
-- Very large photos or very large collage sets can use a lot of memory, especially on mobile.
-- Watermark image uploads are part of the current draft, but the actual image file is not bundled into named presets.
-- Native share support depends on the browser and device.
+- Collage maker is intentionally **guided**, not a full design editor
+- Very large images or large collage sets may impact performance on low-memory devices
+- Watermark presets do not currently bundle uploaded image files
+- Native share support depends on browser/device capabilities
 
-## Project structure
+---
 
-```text
+## Project Structure
+
+```
 src/
   components/
     collage/
@@ -110,6 +146,23 @@ src/
   types.ts
 ```
 
-## Why I built it
+---
 
-I wanted a lightweight photo tool that felt easy to use, worked well on mobile, and did not require uploading personal photos to a server.
+## Why I Built This
+
+I wanted a fast, simple photo tool that:
+
+- Works well on mobile
+- Is easy for non-technical users
+- Respects user privacy
+- Doesn’t require uploading personal photos to a server
+
+---
+
+## Future Improvements
+
+- Batch watermarking
+- Image (logo) watermark presets
+- More collage layout presets
+- Drag-based layout controls
+- Additional export presets for social media
