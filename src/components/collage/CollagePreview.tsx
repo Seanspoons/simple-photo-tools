@@ -234,10 +234,13 @@ export function CollagePreview({
       return {
         guideBorder: 'rgba(31, 59, 45, 0.12)',
         guideFill: 'rgba(255, 255, 255, 0.12)',
+        guideShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.38)',
         emptyBorder: 'rgba(217, 162, 77, 0.32)',
         emptyFill: 'rgba(217, 162, 77, 0.06)',
+        emptyShadow: 'inset 0 0 0 1px rgba(255, 248, 236, 0.34)',
         emptyHoverBorder: 'rgba(217, 162, 77, 0.82)',
-        emptyHoverFill: 'rgba(217, 162, 77, 0.14)'
+        emptyHoverFill: 'rgba(217, 162, 77, 0.14)',
+        emptyHoverShadow: 'inset 0 0 0 1px rgba(255, 248, 236, 0.54)'
       };
     }
 
@@ -248,20 +251,26 @@ export function CollagePreview({
 
     return luminance < 0.45
       ? {
-          guideBorder: 'rgba(255, 255, 255, 0.32)',
-          guideFill: 'rgba(255, 255, 255, 0.08)',
-          emptyBorder: 'rgba(255, 243, 214, 0.72)',
-          emptyFill: 'rgba(255, 243, 214, 0.14)',
-          emptyHoverBorder: 'rgba(255, 243, 214, 0.96)',
-          emptyHoverFill: 'rgba(255, 243, 214, 0.24)'
+          guideBorder: 'rgba(255, 255, 255, 0.72)',
+          guideFill: 'rgba(255, 255, 255, 0.14)',
+          guideShadow: 'inset 0 0 0 1px rgba(24, 32, 27, 0.18)',
+          emptyBorder: 'rgba(255, 243, 214, 0.96)',
+          emptyFill: 'rgba(255, 243, 214, 0.24)',
+          emptyShadow: 'inset 0 0 0 1px rgba(24, 32, 27, 0.16)',
+          emptyHoverBorder: 'rgba(255, 243, 214, 1)',
+          emptyHoverFill: 'rgba(255, 243, 214, 0.34)',
+          emptyHoverShadow: 'inset 0 0 0 1px rgba(24, 32, 27, 0.2)'
         }
       : {
           guideBorder: 'rgba(31, 59, 45, 0.12)',
           guideFill: 'rgba(255, 255, 255, 0.12)',
+          guideShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.38)',
           emptyBorder: 'rgba(217, 162, 77, 0.32)',
           emptyFill: 'rgba(217, 162, 77, 0.06)',
+          emptyShadow: 'inset 0 0 0 1px rgba(255, 248, 236, 0.34)',
           emptyHoverBorder: 'rgba(217, 162, 77, 0.82)',
-          emptyHoverFill: 'rgba(217, 162, 77, 0.14)'
+          emptyHoverFill: 'rgba(217, 162, 77, 0.14)',
+          emptyHoverShadow: 'inset 0 0 0 1px rgba(255, 248, 236, 0.54)'
         };
   }, [backgroundColor]);
 
@@ -636,7 +645,8 @@ export function CollagePreview({
                         height: `${guide.height}px`,
                         borderRadius: `${guide.borderRadius}px`,
                         borderColor: guideAppearance.guideBorder,
-                        background: guideAppearance.guideFill
+                        background: guideAppearance.guideFill,
+                        boxShadow: guideAppearance.guideShadow
                       }}
                     />
                   ))}
@@ -666,7 +676,12 @@ export function CollagePreview({
                               hoveredEmptySlot?.column === guide.column &&
                               hoveredEmptySlot?.row === guide.row
                                 ? guideAppearance.emptyHoverFill
-                                : guideAppearance.emptyFill
+                                : guideAppearance.emptyFill,
+                            boxShadow:
+                              hoveredEmptySlot?.column === guide.column &&
+                              hoveredEmptySlot?.row === guide.row
+                                ? guideAppearance.emptyHoverShadow
+                                : guideAppearance.emptyShadow
                           }}
                           tabIndex={-1}
                           onDragEnter={() => setHoveredEmptySlot({ column: guide.column, row: guide.row })}
