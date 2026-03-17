@@ -303,7 +303,7 @@ export function CollagePreview({
         };
   }, [backgroundColor]);
 
-  const handleTileDragStart = (event: DragEvent<HTMLButtonElement>, index: number) => {
+  const handleTileDragStart = (event: DragEvent<HTMLDivElement>, index: number) => {
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/plain', String(index));
 
@@ -435,7 +435,7 @@ export function CollagePreview({
     return null;
   };
 
-  const handleTouchDragStart = (event: ReactPointerEvent<HTMLButtonElement>, index: number) => {
+  const handleTouchDragStart = (event: ReactPointerEvent<HTMLDivElement>, index: number) => {
     if (!allowTouchMove || event.pointerType === 'mouse') {
       return;
     }
@@ -449,7 +449,7 @@ export function CollagePreview({
     event.currentTarget.setPointerCapture(event.pointerId);
   };
 
-  const handleTouchDragMove = (event: ReactPointerEvent<HTMLButtonElement>) => {
+  const handleTouchDragMove = (event: ReactPointerEvent<HTMLDivElement>) => {
     const touchState = touchDragStateRef.current;
     if (!touchState || touchState.pointerId !== event.pointerId) {
       return;
@@ -473,7 +473,7 @@ export function CollagePreview({
     setHoveredEmptySlot({ column: target.column, row: target.row });
   };
 
-  const handleTouchDragEnd = (event: ReactPointerEvent<HTMLButtonElement>) => {
+  const handleTouchDragEnd = (event: ReactPointerEvent<HTMLDivElement>) => {
     const touchState = touchDragStateRef.current;
     if (!touchState || touchState.pointerId !== event.pointerId) {
       return;
@@ -497,7 +497,7 @@ export function CollagePreview({
     setHoveredEmptySlot(null);
   };
 
-  const handleTouchDragCancel = (event: ReactPointerEvent<HTMLButtonElement>) => {
+  const handleTouchDragCancel = (event: ReactPointerEvent<HTMLDivElement>) => {
     const touchState = touchDragStateRef.current;
     if (!touchState || touchState.pointerId !== event.pointerId) {
       return;
@@ -743,9 +743,10 @@ export function CollagePreview({
                     />
                   ) : null}
                   {scaledCells.map((cell, index) => (
-                    <button
+                    <div
                       key={`${cell.x}-${cell.y}-${index}`}
-                      type="button"
+                      role="button"
+                      aria-label={`Tile ${index + 1}`}
                       className={`preview-dropzone ${
                         selectedIndex === index ? 'is-selected' : ''
                       } ${
@@ -767,8 +768,14 @@ export function CollagePreview({
                         borderRadius: `${cell.borderRadius}px`
                       }}
                       draggable={isInteractive && !allowTouchMove}
-                      tabIndex={-1}
+                      tabIndex={0}
                       onClick={() => onTileSelect?.(index)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          onTileSelect?.(index);
+                        }
+                      }}
                       onDragStart={(event) => handleTileDragStart(event, index)}
                       onDragEnter={() => {
                         setHoveredEmptySlot(null);
@@ -873,7 +880,7 @@ export function CollagePreview({
                           />
                         </>
                       ) : null}
-                    </button>
+                    </div>
                   ))}
                 </div>
               ) : null}
