@@ -161,6 +161,10 @@ select:disabled {
   align-self: end;
 }
 
+.tool-switcher-suite {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .tool-switch-button {
   min-height: 60px;
   border-radius: 16px;
@@ -203,6 +207,63 @@ select:disabled {
   grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.9fr);
   gap: 18px;
   align-items: start;
+}
+
+.suite-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.suite-card {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.suite-card-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.suite-card-header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.suite-status-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #f5ebd8;
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.suite-status-badge.is-live {
+  background: #edf5ef;
+  color: #245436;
+}
+
+.suite-card-copy {
+  margin: 0;
+  color: var(--text-soft);
+}
+
+.coming-soon-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.coming-soon-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .watermark-layout-grid {
@@ -1649,7 +1710,8 @@ select:disabled {
 
   .site-intro,
   .hero,
-  .layout-grid {
+  .layout-grid,
+  .suite-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -1714,6 +1776,10 @@ select:disabled {
   }
 
   .output-choice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tool-switcher-suite {
     grid-template-columns: 1fr;
   }
 
