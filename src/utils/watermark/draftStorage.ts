@@ -4,6 +4,7 @@ const DATABASE_NAME = 'photo-watermarker';
 const DATABASE_VERSION = 1;
 const STORE_NAME = 'drafts';
 const WATERMARK_DRAFT_KEY = 'watermark-draft';
+const WATERMARK_LOGO_KEY = 'watermark-logo';
 
 interface StoredWatermarkDraft {
   id: string;
@@ -12,6 +13,11 @@ interface StoredWatermarkDraft {
   previewMode: 'after' | 'before';
   file: File | null;
   watermarkFile: File | null;
+}
+
+interface StoredWatermarkLogo {
+  id: string;
+  file: File | null;
 }
 
 function openDatabase(): Promise<IDBDatabase | null> {
@@ -51,6 +57,24 @@ export async function loadWatermarkDraft(): Promise<StoredWatermarkDraft | null>
   });
 }
 
+export async function loadWatermarkLogo(): Promise<File | null> {
+  const database = await openDatabase();
+  if (!database) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(STORE_NAME, 'readonly');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.get(WATERMARK_LOGO_KEY);
+
+    request.onsuccess = () =>
+      resolve(((request.result as StoredWatermarkLogo | undefined) ?? null)?.file ?? null);
+    request.onerror = () => reject(request.error);
+    transaction.oncomplete = () => database.close();
+  });
+}
+
 export async function saveWatermarkDraft(
   settings: WatermarkSettings,
   exportFormat: ExportFormat,
@@ -83,6 +107,28 @@ export async function saveWatermarkDraft(
   });
 }
 
+export async function saveWatermarkLogo(file: File | null): Promise<void> {
+  const database = await openDatabase();
+  if (!database) {
+    return;
+  }
+
+  await new Promise<void>((resolve, reject) => {
+    const transaction = database.transaction(STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    store.put({
+      id: WATERMARK_LOGO_KEY,
+      file
+    } satisfies StoredWatermarkLogo);
+
+    transaction.oncomplete = () => {
+      database.close();
+      resolve();
+    };
+    transaction.onerror = () => reject(transaction.error);
+  });
+}
+
 export async function clearWatermarkDraft(): Promise<void> {
   const database = await openDatabase();
   if (!database) {
@@ -93,6 +139,25 @@ export async function clearWatermarkDraft(): Promise<void> {
     const transaction = database.transaction(STORE_NAME, 'readwrite');
     const store = transaction.objectStore(STORE_NAME);
     store.delete(WATERMARK_DRAFT_KEY);
+
+    transaction.oncomplete = () => {
+      database.close();
+      resolve();
+    };
+    transaction.onerror = () => reject(transaction.error);
+  });
+}
+
+export async function clearWatermarkLogo(): Promise<void> {
+  const database = await openDatabase();
+  if (!database) {
+    return;
+  }
+
+  await new Promise<void>((resolve, reject) => {
+    const transaction = database.transaction(STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    store.delete(WATERMARK_LOGO_KEY);
 
     transaction.oncomplete = () => {
       database.close();

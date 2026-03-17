@@ -20,7 +20,10 @@ import { loadImageAsset } from '../../utils/imageLoader';
 import { renderWatermarkedImage } from '../../utils/renderWatermark';
 import {
   clearWatermarkDraft,
+  clearWatermarkLogo,
   loadWatermarkDraft,
+  loadWatermarkLogo,
+  saveWatermarkLogo,
   saveWatermarkDraft
 } from '../../utils/watermark/draftStorage';
 import { ExportFormat, ImageAsset, SavedPreset, WatermarkSettings } from '../../types';
@@ -128,14 +131,24 @@ export function WatermarkTool() {
     async function restoreDraft() {
       try {
         const draft = await loadWatermarkDraft();
+        const standaloneLogoFile = draft?.watermarkFile ?? (await loadWatermarkLogo());
         if (!draft || isCancelled) {
+          if (!isCancelled && standaloneLogoFile) {
+            const restoredWatermarkAsset = await loadImageAsset(standaloneLogoFile);
+            setWatermarkAsset((current) => {
+              if (current?.objectUrl) {
+                URL.revokeObjectURL(current.objectUrl);
+              }
+              return restoredWatermarkAsset;
+            });
+          }
           setHasLoadedDraft(true);
           return;
         }
 
         const restoredAsset = draft.file ? await loadImageAsset(draft.file) : null;
-        const restoredWatermarkAsset = draft.watermarkFile
-          ? await loadImageAsset(draft.watermarkFile)
+        const restoredWatermarkAsset = standaloneLogoFile
+          ? await loadImageAsset(standaloneLogoFile)
           : null;
         if (isCancelled) {
           if (restoredAsset) {
@@ -275,6 +288,7 @@ export function WatermarkTool() {
 
     try {
       const nextAsset = await loadImageAsset(file);
+      await saveWatermarkLogo(file);
       setWatermarkAsset((current) => {
         if (current?.objectUrl) {
           URL.revokeObjectURL(current.objectUrl);
@@ -367,6 +381,7 @@ export function WatermarkTool() {
   };
 
   const handleClearWatermarkImage = () => {
+    void clearWatermarkLogo();
     setWatermarkAsset((current) => {
       if (current?.objectUrl) {
         URL.revokeObjectURL(current.objectUrl);
