@@ -115,6 +115,11 @@ function getRecommendedSettings(
 
 export function CollageMaker() {
   const [tiles, setTiles] = useState<CollageTile[]>([]);
+  const [resizePreview, setResizePreview] = useState<{
+    index: number;
+    colSpan: number;
+    rowSpan: number;
+  } | null>(null);
   const [settings, setSettings] = useState<CollageSettings>(loadStoredCollageSettings);
   const [savedPresets, setSavedPresets] = useState<CollageSavedPreset[]>(loadStoredCollagePresets);
   const [presetName, setPresetName] = useState('');
@@ -145,6 +150,21 @@ export function CollageMaker() {
   }, [tiles.length]);
 
   const canBuildCollage = tiles.length >= 2;
+  const previewTiles = useMemo(() => {
+    if (!resizePreview) {
+      return tiles;
+    }
+
+    return tiles.map((tile, index) =>
+      index === resizePreview.index
+        ? {
+            ...tile,
+            colSpan: resizePreview.colSpan,
+            rowSpan: resizePreview.rowSpan
+          }
+        : tile
+    );
+  }, [resizePreview, tiles]);
   const previewSize = useMemo(() => {
     const outputSize = getCollageOutputSize(settings);
     const maxPreviewWidth = 960;
@@ -158,13 +178,13 @@ export function CollageMaker() {
     };
   }, [settings]);
   const packedPreviewTiles = useMemo(
-    () => getCollagePackedTiles(tiles, settings, previewSize),
-    [tiles, settings, previewSize]
+    () => getCollagePackedTiles(previewTiles, settings, previewSize),
+    [previewTiles, settings, previewSize]
   );
   const layoutMetrics = useMemo(() => getCollageLayoutMetrics(tiles, settings), [tiles, settings]);
   const previewMetrics = useMemo(
-    () => getCollageLayoutMetrics(tiles, settings, previewSize),
-    [tiles, settings, previewSize]
+    () => getCollageLayoutMetrics(previewTiles, settings, previewSize),
+    [previewTiles, settings, previewSize]
   );
   const layoutAdvice = useMemo(() => {
     if (!canBuildCollage) {
@@ -282,11 +302,11 @@ export function CollageMaker() {
       return;
     }
 
-    renderCollage(previewCanvasRef.current, tiles, settings, {
+    renderCollage(previewCanvasRef.current, previewTiles, settings, {
       width: previewSize.width,
       height: previewSize.height
     });
-  }, [canBuildCollage, previewSize.height, previewSize.width, settings, tiles]);
+  }, [canBuildCollage, previewSize.height, previewSize.width, previewTiles, settings]);
 
   useEffect(() => {
     imagesRef.current = tiles;
@@ -481,6 +501,20 @@ export function CollageMaker() {
     );
   };
 
+  const handleResizePreview = (index: number, colSpan: number, rowSpan: number) => {
+    setResizePreview({ index, colSpan, rowSpan });
+  };
+
+  const handleResizeCommit = (index: number, colSpan: number, rowSpan: number) => {
+    setResizePreview(null);
+    handleResizeTile(index, colSpan, rowSpan);
+    setStatusMessage(`Tile resized to ${colSpan} × ${rowSpan}.`);
+  };
+
+  const handleResizeCancel = () => {
+    setResizePreview(null);
+  };
+
   const reorderImages = (fromIndex: number, toIndex: number) => {
     setTiles((current) => {
       if (
@@ -657,7 +691,9 @@ export function CollageMaker() {
               onTileDragEnter={handleDragEnter}
               onTileDrop={handlePreviewDrop}
               onTileDragEnd={handleDragEnd}
-              onTileResize={handleResizeTile}
+              onTileResizePreview={handleResizePreview}
+              onTileResizeCommit={handleResizeCommit}
+              onTileResizeCancel={handleResizeCancel}
             />
           </div>
         </div>

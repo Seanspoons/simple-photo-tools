@@ -33,7 +33,9 @@ interface CollagePreviewProps {
   onTileDragEnter?: (index: number) => void;
   onTileDrop?: (index: number) => void;
   onTileDragEnd?: () => void;
-  onTileResize?: (index: number, colSpan: number, rowSpan: number) => void;
+  onTileResizePreview?: (index: number, colSpan: number, rowSpan: number) => void;
+  onTileResizeCommit?: (index: number, colSpan: number, rowSpan: number) => void;
+  onTileResizeCancel?: () => void;
 }
 
 export function CollagePreview({
@@ -57,7 +59,9 @@ export function CollagePreview({
   onTileDragEnter,
   onTileDrop,
   onTileDragEnd,
-  onTileResize
+  onTileResizePreview,
+  onTileResizeCommit,
+  onTileResizeCancel
 }: CollagePreviewProps) {
   const shellRef = useRef<HTMLDivElement>(null);
   const dragImageRef = useRef<HTMLImageElement | null>(null);
@@ -71,6 +75,8 @@ export function CollagePreview({
     startY: number;
     startColSpan: number;
     startRowSpan: number;
+    nextColSpan: number;
+    nextRowSpan: number;
     maxColSpan: number;
   } | null>(null);
 
@@ -198,6 +204,8 @@ export function CollagePreview({
       startY: event.clientY,
       startColSpan: cell.colSpan,
       startRowSpan: cell.rowSpan,
+      nextColSpan: cell.colSpan,
+      nextRowSpan: cell.rowSpan,
       maxColSpan: Math.max(1, previewMetrics.columns - cell.column)
     };
     onTileSelect?.(cell.index);
@@ -252,7 +260,9 @@ export function CollagePreview({
       )
     );
 
-    onTileResize?.(resizeState.index, nextColSpan, nextRowSpan);
+    resizeState.nextColSpan = nextColSpan;
+    resizeState.nextRowSpan = nextRowSpan;
+    onTileResizePreview?.(resizeState.index, nextColSpan, nextRowSpan);
   };
 
   const handleResizeEnd = (event: ReactPointerEvent<HTMLButtonElement>) => {
@@ -265,7 +275,22 @@ export function CollagePreview({
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
 
+    onTileResizeCommit?.(resizeState.index, resizeState.nextColSpan, resizeState.nextRowSpan);
     resizeStateRef.current = null;
+  };
+
+  const handleResizeCancel = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    const resizeState = resizeStateRef.current;
+    if (!resizeState) {
+      return;
+    }
+
+    if (event.pointerId === resizeState.pointerId) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    resizeStateRef.current = null;
+    onTileResizeCancel?.();
   };
 
   return (
@@ -338,7 +363,7 @@ export function CollagePreview({
                         onPointerDown={(event) => handleResizeStart(event, cell, 'right')}
                         onPointerMove={handleResizeMove}
                         onPointerUp={handleResizeEnd}
-                        onPointerCancel={handleResizeEnd}
+                        onPointerCancel={handleResizeCancel}
                       />
                       <button
                         type="button"
@@ -348,7 +373,7 @@ export function CollagePreview({
                         onPointerDown={(event) => handleResizeStart(event, cell, 'bottom')}
                         onPointerMove={handleResizeMove}
                         onPointerUp={handleResizeEnd}
-                        onPointerCancel={handleResizeEnd}
+                        onPointerCancel={handleResizeCancel}
                       />
                       <button
                         type="button"
@@ -358,7 +383,7 @@ export function CollagePreview({
                         onPointerDown={(event) => handleResizeStart(event, cell, 'corner')}
                         onPointerMove={handleResizeMove}
                         onPointerUp={handleResizeEnd}
-                        onPointerCancel={handleResizeEnd}
+                        onPointerCancel={handleResizeCancel}
                       />
                     </button>
                   ))}

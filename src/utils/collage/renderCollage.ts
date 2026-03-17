@@ -33,6 +33,7 @@ export interface CollageLayoutMetrics {
   outputHeight: number;
   columns: number;
   rows: number;
+  frameRows: number;
   cellSize: number;
   gridWidth: number;
   gridHeight: number;
@@ -193,6 +194,12 @@ function chooseColumnCount(tiles: CollageTile[], settings: CollageSettings, outp
   return bestColumns;
 }
 
+function chooseFrameRows(columns: number, packedRows: number, outputSize: CanvasSize) {
+  const targetAspect = outputSize.width / outputSize.height;
+  const idealRows = Math.max(1, Math.round(columns / targetAspect));
+  return Math.max(packedRows, idealRows);
+}
+
 function getPackedTiles(
   tiles: CollageTile[],
   outputSize: CanvasSize,
@@ -206,6 +213,7 @@ function getPackedTiles(
         outputHeight: outputSize.height,
         columns: settings.columns,
         rows: 0,
+        frameRows: 0,
         cellSize: 0,
         gridWidth: 0,
         gridHeight: 0
@@ -215,12 +223,13 @@ function getPackedTiles(
 
   const safeColumns = chooseColumnCount(tiles, settings, outputSize);
   const { placements, rows } = packTiles(tiles, safeColumns);
+  const frameRows = chooseFrameRows(safeColumns, rows, outputSize);
   const cellSize = Math.min(
     (outputSize.width - settings.gap * (safeColumns - 1)) / safeColumns,
-    (outputSize.height - settings.gap * (rows - 1)) / rows
+    (outputSize.height - settings.gap * (frameRows - 1)) / frameRows
   );
   const gridWidth = cellSize * safeColumns + settings.gap * (safeColumns - 1);
-  const gridHeight = cellSize * rows + settings.gap * (rows - 1);
+  const gridHeight = cellSize * frameRows + settings.gap * (frameRows - 1);
   const offsetX = (outputSize.width - gridWidth) / 2;
   const offsetY = (outputSize.height - gridHeight) / 2;
 
@@ -242,6 +251,7 @@ function getPackedTiles(
       outputHeight: outputSize.height,
       columns: safeColumns,
       rows,
+      frameRows,
       cellSize,
       gridWidth,
       gridHeight
