@@ -1,3 +1,4 @@
+import { MAX_COLLAGE_COLUMNS } from '../../constants';
 import { CollageSavedPreset, CollageSettings } from '../../types';
 
 const SIZE_OPTIONS: Array<{
@@ -190,7 +191,7 @@ export function CollageControls({
           <input
             type="range"
             min="2"
-            max="7"
+            max={String(MAX_COLLAGE_COLUMNS)}
             step="1"
             value={settings.columns}
             onChange={(event) => onChange('columns', Number(event.target.value))}

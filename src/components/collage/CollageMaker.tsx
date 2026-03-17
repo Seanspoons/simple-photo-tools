@@ -132,6 +132,7 @@ export function CollageMaker() {
     rowSpan: number;
   } | null>(null);
   const [resizePreviewColumns, setResizePreviewColumns] = useState<number | null>(null);
+  const [resizeHitMaxColumns, setResizeHitMaxColumns] = useState(false);
   const [settings, setSettings] = useState<CollageSettings>(loadStoredCollageSettings);
   const [savedPresets, setSavedPresets] = useState<CollageSavedPreset[]>(loadStoredCollagePresets);
   const [presetName, setPresetName] = useState('');
@@ -532,26 +533,37 @@ export function CollageMaker() {
 
   const handleResizePreview = (index: number, colSpan: number, rowSpan: number) => {
     const previewTile = packedPreviewTiles.find((tile) => tile.index === index);
-    const requiredColumns = previewTile
-      ? Math.min(MAX_COLLAGE_COLUMNS, previewTile.column + colSpan)
-      : previewMetrics.columns;
+    const requestedColumns = previewTile ? previewTile.column + colSpan : previewMetrics.columns;
+    const requiredColumns = Math.min(MAX_COLLAGE_COLUMNS, requestedColumns);
 
     setResizePreviewColumns((current) =>
       Math.max(current ?? previewMetrics.columns, requiredColumns)
     );
+    setResizeHitMaxColumns(requestedColumns > MAX_COLLAGE_COLUMNS);
     setResizePreview({ index, colSpan, rowSpan });
   };
 
   const handleResizeCommit = (index: number, colSpan: number, rowSpan: number) => {
+    const nextColumns = Math.max(settings.columns, resizePreviewColumns ?? settings.columns);
     setResizePreview(null);
     setResizePreviewColumns(null);
+    setResizeHitMaxColumns(false);
+    setSettings((current) => ({
+      ...current,
+      columns: Math.max(current.columns, nextColumns)
+    }));
     handleResizeTile(index, colSpan, rowSpan);
-    setStatusMessage(`Tile resized to ${colSpan} × ${rowSpan}.`);
+    setStatusMessage(
+      resizeHitMaxColumns
+        ? `Tile resized to ${colSpan} × ${rowSpan}. Reached the max grid width of ${MAX_COLLAGE_COLUMNS} columns.`
+        : `Tile resized to ${colSpan} × ${rowSpan}.`
+    );
   };
 
   const handleResizeCancel = () => {
     setResizePreview(null);
     setResizePreviewColumns(null);
+    setResizeHitMaxColumns(false);
   };
 
   const anchorTilesToCurrentLayout = (currentTiles: CollageTile[]) => {
@@ -682,6 +694,10 @@ export function CollageMaker() {
           : tile
       );
     });
+    setSettings((current) => ({
+      ...current,
+      columns: Math.max(current.columns, Math.min(MAX_COLLAGE_COLUMNS, column + 1))
+    }));
 
     setSelectedImageIndex(draggedIndex);
     setStatusMessage('Photo moved.');
