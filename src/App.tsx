@@ -181,31 +181,53 @@ function ToolIcon({ kind }: { kind: ToolCard['icon'] }) {
         ) : null}
         {kind === 'convert' ? (
           <>
-            <rect x="14" y="16" width="24" height="30" rx="9" className="icon-surface" />
-            <rect x="34" y="26" width="24" height="30" rx="9" className="icon-surface-strong" />
-            <path d="M28 53h16" className="icon-accent-stroke" />
-            <path d="M39 48l5 5-5 5" className="icon-accent-stroke" />
+            <path
+              d="M21 21h11l4 4v18H21z"
+              className="icon-surface"
+              strokeLinejoin="round"
+            />
+            <path d="M32 21v5h5" className="icon-accent-outline" strokeLinejoin="round" />
+            <path
+              d="M36 35h11l4 4v18H36z"
+              className="icon-surface-strong"
+              strokeLinejoin="round"
+            />
+            <path d="M47 35v5h5" className="icon-accent-outline" strokeLinejoin="round" />
+            <path d="M38 14a20 20 0 0 1 17 14" className="icon-accent-stroke" />
+            <path d="M49.5 20.5l5.5 7-8-.2" className="icon-accent-stroke" />
+            <path d="M34 59a20 20 0 0 1-17-14" className="icon-accent-stroke" />
+            <path d="M22.5 52.5l-5.5-7 8 .2" className="icon-accent-stroke" />
           </>
         ) : null}
         {kind === 'crop' ? (
           <>
-            <path d="M25 17v30a6 6 0 0 0 6 6h24" className="icon-accent-stroke" />
-            <path d="M17 25h24a6 6 0 0 1 6 6v24" className="icon-accent-stroke" />
-            <rect x="31" y="31" width="18" height="18" rx="6" className="icon-surface" />
+            <path
+              d="M24 18v26a2.5 2.5 0 0 0 2.5 2.5H54"
+              className="icon-accent-stroke"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M18 26h26a2.5 2.5 0 0 1 2.5 2.5V54"
+              className="icon-accent-stroke"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </>
         ) : null}
         {kind === 'rotate' ? (
           <>
             <path d="M24 26a16 16 0 1 1-2 21" className="icon-accent-stroke" />
             <path d="M19 20v11h11" className="icon-accent-stroke" />
-            <path d="M42 41l10 10" className="icon-accent-stroke" />
           </>
         ) : null}
         {kind === 'social' ? (
           <>
-            <rect x="14" y="18" width="19" height="36" rx="8" className="icon-surface" />
-            <rect x="39" y="14" width="19" height="26" rx="8" className="icon-surface-strong" />
-            <rect x="39" y="44" width="19" height="14" rx="6" className="icon-accent-soft-fill" />
+            <rect x="14" y="18" width="18" height="32" rx="8" className="icon-surface" />
+            <rect x="39" y="14" width="18" height="18" rx="7" className="icon-accent-soft-fill" />
+            <rect x="36" y="38" width="24" height="20" rx="8" className="icon-surface-strong" />
+            <path d="M32 34l7-5" className="icon-accent-stroke" />
+            <path d="M31 40l5 4" className="icon-accent-stroke" />
           </>
         ) : null}
         {kind === 'border' ? (
