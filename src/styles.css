@@ -495,25 +495,51 @@ select:disabled {
   opacity: 1;
 }
 
-.preview-main-button {
+.preview-resize-handle {
   position: absolute;
-  right: 10px;
-  bottom: 10px;
-  min-height: 32px;
-  padding: 0 10px;
-  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
   border: 1px solid rgba(255, 252, 246, 0.88);
   background: rgba(255, 252, 246, 0.94);
   color: var(--accent);
-  font-size: 0.76rem;
-  font-weight: 700;
   opacity: 0;
   transition: opacity 140ms ease;
 }
 
-.preview-dropzone:hover .preview-main-button,
-.preview-dropzone.is-hovered .preview-main-button,
-.preview-dropzone.is-drop-target .preview-main-button {
+.preview-resize-handle::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 4px;
+  background: #d9a24d;
+}
+
+.preview-resize-handle-right {
+  top: 50%;
+  right: -11px;
+  transform: translateY(-50%);
+  cursor: ew-resize;
+}
+
+.preview-resize-handle-bottom {
+  left: 50%;
+  bottom: -11px;
+  transform: translateX(-50%);
+  cursor: ns-resize;
+}
+
+.preview-resize-handle-corner {
+  right: -11px;
+  bottom: -11px;
+  cursor: nwse-resize;
+}
+
+.preview-dropzone:hover .preview-resize-handle,
+.preview-dropzone.is-hovered .preview-resize-handle,
+.preview-dropzone.is-drop-target .preview-resize-handle,
+.preview-dropzone.is-selected .preview-resize-handle {
   opacity: 1;
 }
 

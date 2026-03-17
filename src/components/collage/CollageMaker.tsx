@@ -162,6 +162,10 @@ export function CollageMaker() {
     [tiles, settings, previewSize]
   );
   const layoutMetrics = useMemo(() => getCollageLayoutMetrics(tiles, settings), [tiles, settings]);
+  const previewMetrics = useMemo(
+    () => getCollageLayoutMetrics(tiles, settings, previewSize),
+    [tiles, settings, previewSize]
+  );
   const layoutAdvice = useMemo(() => {
     if (!canBuildCollage) {
       return { message: null, actions: [] as Array<{ label: string; apply: () => void }> };
@@ -463,6 +467,20 @@ export function CollageMaker() {
     setStatusMessage('Photo order updated.');
   };
 
+  const handleResizeTile = (index: number, colSpan: number, rowSpan: number) => {
+    setTiles((current) =>
+      current.map((tile, currentIndex) =>
+        currentIndex === index
+          ? {
+              ...tile,
+              colSpan,
+              rowSpan
+            }
+          : tile
+      )
+    );
+  };
+
   const reorderImages = (fromIndex: number, toIndex: number) => {
     setTiles((current) => {
       if (
@@ -626,6 +644,8 @@ export function CollageMaker() {
               helperText={previewHelperText}
               exportFrameNote="Everything inside this frame exports exactly as shown."
               previewCells={packedPreviewTiles}
+              previewMetrics={previewMetrics}
+              gap={settings.gap}
               previewCornerRadius={settings.fitMode === 'cover' ? settings.cornerRadius : 0}
               previewImageUrls={tiles.map((tile) => tile.objectUrl)}
               isInteractive={canPreviewDrag && canBuildCollage && !isBusy}
@@ -637,6 +657,7 @@ export function CollageMaker() {
               onTileDragEnter={handleDragEnter}
               onTileDrop={handlePreviewDrop}
               onTileDragEnd={handleDragEnd}
+              onTileResize={handleResizeTile}
             />
           </div>
         </div>
@@ -724,6 +745,38 @@ export function CollageMaker() {
                       {tiles[selectedImageIndex].name}
                     </p>
                     <div className="mobile-photo-toolbar-actions">
+                      <button
+                        type="button"
+                        className="thumb-inline-button"
+                        onClick={() => handleResizeTile(selectedImageIndex, 1, 1)}
+                        disabled={isBusy}
+                      >
+                        1×1
+                      </button>
+                      <button
+                        type="button"
+                        className="thumb-inline-button"
+                        onClick={() => handleResizeTile(selectedImageIndex, 2, 1)}
+                        disabled={isBusy}
+                      >
+                        2×1
+                      </button>
+                      <button
+                        type="button"
+                        className="thumb-inline-button"
+                        onClick={() => handleResizeTile(selectedImageIndex, 1, 2)}
+                        disabled={isBusy}
+                      >
+                        1×2
+                      </button>
+                      <button
+                        type="button"
+                        className="thumb-inline-button"
+                        onClick={() => handleResizeTile(selectedImageIndex, 2, 2)}
+                        disabled={isBusy}
+                      >
+                        2×2
+                      </button>
                       <button
                         type="button"
                         className="thumb-inline-button"

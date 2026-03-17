@@ -1,12 +1,16 @@
 import {
   DragEvent,
+  PointerEvent as ReactPointerEvent,
   RefObject,
   useEffect,
   useMemo,
   useRef,
   useState
 } from 'react';
-import { CollageLayoutCell } from '../../utils/collage/renderCollage';
+import {
+  CollageLayoutMetrics,
+  CollagePackedTile
+} from '../../utils/collage/renderCollage';
 
 interface CollagePreviewProps {
   canvasRef: RefObject<HTMLCanvasElement>;
@@ -15,8 +19,9 @@ interface CollagePreviewProps {
   canBuild: boolean;
   helperText?: string;
   exportFrameNote?: string;
-  showMainPhotoActions?: boolean;
-  previewCells?: CollageLayoutCell[];
+  previewCells?: CollagePackedTile[];
+  previewMetrics?: CollageLayoutMetrics | null;
+  gap?: number;
   previewCornerRadius?: number;
   previewImageUrls?: string[];
   isInteractive?: boolean;
@@ -24,11 +29,11 @@ interface CollagePreviewProps {
   draggedIndex?: number | null;
   dropTargetIndex?: number | null;
   onTileSelect?: (index: number) => void;
-  onMakeMain?: (index: number) => void;
   onTileDragStart?: (index: number) => void;
   onTileDragEnter?: (index: number) => void;
   onTileDrop?: (index: number) => void;
   onTileDragEnd?: () => void;
+  onTileResize?: (index: number, colSpan: number, rowSpan: number) => void;
 }
 
 export function CollagePreview({
@@ -38,8 +43,9 @@ export function CollagePreview({
   canBuild,
   helperText,
   exportFrameNote,
-  showMainPhotoActions = false,
   previewCells = [],
+  previewMetrics = null,
+  gap = 0,
   previewCornerRadius = 0,
   previewImageUrls = [],
   isInteractive = false,
@@ -47,16 +53,26 @@ export function CollagePreview({
   draggedIndex = null,
   dropTargetIndex = null,
   onTileSelect,
-  onMakeMain,
   onTileDragStart,
   onTileDragEnter,
   onTileDrop,
-  onTileDragEnd
+  onTileDragEnd,
+  onTileResize
 }: CollagePreviewProps) {
   const shellRef = useRef<HTMLDivElement>(null);
   const dragImageRef = useRef<HTMLImageElement | null>(null);
   const [displaySize, setDisplaySize] = useState({ width: 0, height: 0 });
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const resizeStateRef = useRef<{
+    index: number;
+    pointerId: number;
+    mode: 'right' | 'bottom' | 'corner';
+    startX: number;
+    startY: number;
+    startColSpan: number;
+    startRowSpan: number;
+    maxColSpan: number;
+  } | null>(null);
 
   useEffect(() => {
     if (!shellRef.current) {
@@ -96,6 +112,11 @@ export function CollagePreview({
     const scale = Math.min(scaleX, scaleY);
 
     return previewCells.map((cell) => ({
+      index: cell.index,
+      column: cell.column,
+      row: cell.row,
+      colSpan: cell.colSpan,
+      rowSpan: cell.rowSpan,
       x: cell.x * scaleX,
       y: cell.y * scaleY,
       width: cell.width * scaleX,
@@ -158,6 +179,73 @@ export function CollagePreview({
     onTileDragEnd?.();
   };
 
+  const handleResizeStart = (
+    event: ReactPointerEvent<HTMLButtonElement>,
+    cell: (typeof scaledCells)[number],
+    mode: 'right' | 'bottom' | 'corner'
+  ) => {
+    if (!previewMetrics) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    resizeStateRef.current = {
+      index: cell.index,
+      pointerId: event.pointerId,
+      mode,
+      startX: event.clientX,
+      startY: event.clientY,
+      startColSpan: cell.colSpan,
+      startRowSpan: cell.rowSpan,
+      maxColSpan: Math.max(1, previewMetrics.columns - cell.column)
+    };
+    onTileSelect?.(cell.index);
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleResizeMove = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    const resizeState = resizeStateRef.current;
+    const canvas = canvasRef.current;
+    if (!resizeState || !previewMetrics || !canvas) {
+      return;
+    }
+
+    const scaleX = displaySize.width / canvas.width;
+    const scaleY = displaySize.height / canvas.height;
+    const horizontalStep = (previewMetrics.cellSize + gap) * scaleX;
+    const verticalStep = (previewMetrics.cellSize + gap) * scaleY;
+    const deltaColumns =
+      resizeState.mode === 'bottom'
+        ? 0
+        : Math.round((event.clientX - resizeState.startX) / Math.max(horizontalStep, 1));
+    const deltaRows =
+      resizeState.mode === 'right'
+        ? 0
+        : Math.round((event.clientY - resizeState.startY) / Math.max(verticalStep, 1));
+
+    const nextColSpan = Math.min(
+      resizeState.maxColSpan,
+      Math.max(1, resizeState.startColSpan + deltaColumns)
+    );
+    const nextRowSpan = Math.min(4, Math.max(1, resizeState.startRowSpan + deltaRows));
+
+    onTileResize?.(resizeState.index, nextColSpan, nextRowSpan);
+  };
+
+  const handleResizeEnd = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    const resizeState = resizeStateRef.current;
+    if (!resizeState) {
+      return;
+    }
+
+    if (event.pointerId === resizeState.pointerId) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    resizeStateRef.current = null;
+  };
+
   return (
     <section className="panel preview-panel">
       <div className="panel-heading">
@@ -218,22 +306,38 @@ export function CollagePreview({
                       onMouseLeave={() => setHoveredIndex(null)}
                     >
                       <span className="preview-dropzone-label">
-                        {showMainPhotoActions && index === 0 ? 'Main photo' : 'Drag to swap'}
+                        Drag to move
                       </span>
-                      {showMainPhotoActions && index !== 0 ? (
-                        <button
-                          type="button"
-                          className="preview-main-button"
-                          tabIndex={-1}
-                          onClick={(event) => {
-                            event.preventDefault();
-                            event.stopPropagation();
-                            onMakeMain?.(index);
-                          }}
-                        >
-                          Make Main
-                        </button>
-                      ) : null}
+                      <button
+                        type="button"
+                        className="preview-resize-handle preview-resize-handle-right"
+                        aria-label="Resize wider"
+                        tabIndex={-1}
+                        onPointerDown={(event) => handleResizeStart(event, cell, 'right')}
+                        onPointerMove={handleResizeMove}
+                        onPointerUp={handleResizeEnd}
+                        onPointerCancel={handleResizeEnd}
+                      />
+                      <button
+                        type="button"
+                        className="preview-resize-handle preview-resize-handle-bottom"
+                        aria-label="Resize taller"
+                        tabIndex={-1}
+                        onPointerDown={(event) => handleResizeStart(event, cell, 'bottom')}
+                        onPointerMove={handleResizeMove}
+                        onPointerUp={handleResizeEnd}
+                        onPointerCancel={handleResizeEnd}
+                      />
+                      <button
+                        type="button"
+                        className="preview-resize-handle preview-resize-handle-corner"
+                        aria-label="Resize larger"
+                        tabIndex={-1}
+                        onPointerDown={(event) => handleResizeStart(event, cell, 'corner')}
+                        onPointerMove={handleResizeMove}
+                        onPointerUp={handleResizeEnd}
+                        onPointerCancel={handleResizeEnd}
+                      />
                     </button>
                   ))}
                 </div>
