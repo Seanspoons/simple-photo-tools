@@ -40,6 +40,10 @@ type ResizeHandleMode =
   | 'top-right'
   | 'bottom-left'
   | 'bottom-right';
+interface CollageHistoryEntry {
+  settings: CollageSettings;
+  tiles: CollageTile[];
+}
 
 const DEFAULT_COLLAGE_SETTINGS: CollageSettings = {
   sizePreset: 'instagram-square',
@@ -134,6 +138,30 @@ function getRecommendedSettings(
   };
 }
 
+function cloneTiles(tiles: CollageTile[]) {
+  return tiles.map((tile) => ({ ...tile }));
+}
+
+function createHistoryEntry(tiles: CollageTile[], settings: CollageSettings): CollageHistoryEntry {
+  return {
+    settings: { ...settings },
+    tiles: cloneTiles(tiles)
+  };
+}
+
+function getHistorySignature(entry: CollageHistoryEntry) {
+  return JSON.stringify({
+    settings: entry.settings,
+    tiles: entry.tiles.map((tile) => ({
+      id: tile.id,
+      colSpan: tile.colSpan,
+      rowSpan: tile.rowSpan,
+      gridColumn: tile.gridColumn,
+      gridRow: tile.gridRow
+    }))
+  });
+}
+
 export function CollageMaker() {
   const [tiles, setTiles] = useState<CollageTile[]>([]);
   const [resizePreview, setResizePreview] = useState<{
@@ -158,7 +186,11 @@ export function CollageMaker() {
   const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
   const [canPreviewDrag, setCanPreviewDrag] = useState(false);
   const [canTouchPreviewMove, setCanTouchPreviewMove] = useState(false);
+  const [historyPast, setHistoryPast] = useState<CollageHistoryEntry[]>([]);
+  const [historyFuture, setHistoryFuture] = useState<CollageHistoryEntry[]>([]);
   const imagesRef = useRef<CollageTile[]>([]);
+  const tilesStateRef = useRef<CollageTile[]>([]);
+  const settingsStateRef = useRef<CollageSettings>(settings);
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const exportPreviewCanvasRef = useRef<HTMLCanvasElement>(null);
   const exportCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -174,6 +206,20 @@ export function CollageMaker() {
 
     return `${tiles.length} photos ready for your collage.`;
   }, [tiles.length]);
+
+  const canUndo = historyPast.length > 0;
+  const canRedo = historyFuture.length > 0;
+
+  const pushHistoryEntry = (nextTiles: CollageTile[], nextSettings: CollageSettings) => {
+    const previousEntry = createHistoryEntry(tilesStateRef.current, settingsStateRef.current);
+    const nextEntry = createHistoryEntry(nextTiles, nextSettings);
+    if (getHistorySignature(previousEntry) === getHistorySignature(nextEntry)) {
+      return;
+    }
+
+    setHistoryPast((current) => [...current.slice(-39), previousEntry]);
+    setHistoryFuture([]);
+  };
 
   const canAreaFit = (
     occupiedCells: Set<string>,
@@ -427,6 +473,11 @@ export function CollageMaker() {
   }, [settings]);
 
   useEffect(() => {
+    tilesStateRef.current = tiles;
+    settingsStateRef.current = settings;
+  }, [settings, tiles]);
+
+  useEffect(() => {
     let isCancelled = false;
 
     async function restoreDraft() {
@@ -457,6 +508,8 @@ export function CollageMaker() {
 
         setSettings(draft.settings);
         setTiles(restoredTiles);
+        setHistoryPast([]);
+        setHistoryFuture([]);
         setStatusMessage(restoredTiles.length > 0 ? 'Restored your last collage.' : null);
       } catch {
         if (!isCancelled) {
@@ -558,9 +611,11 @@ export function CollageMaker() {
       const loadedImages = await Promise.all(filesToLoad.map((file) => loadImageAsset(file)));
       const nextImageCount = tiles.length + loadedImages.length;
       const loadedTiles = loadedImages.map((image) => createCollageTile(image));
-
-      setTiles((current) => [...current, ...loadedTiles]);
-      setSettings((current) => getRecommendedSettings(nextImageCount, current));
+      const nextTiles = [...tilesStateRef.current, ...loadedTiles];
+      const nextSettings = getRecommendedSettings(nextImageCount, settingsStateRef.current);
+      pushHistoryEntry(nextTiles, nextSettings);
+      setTiles(nextTiles);
+      setSettings(nextSettings);
       setStatusMessage(`${nextImageCount} photos ready.`);
 
       if (nextFiles.length > roomRemaining) {
@@ -608,12 +663,14 @@ export function CollageMaker() {
       }
 
       const shouldUseHighRes = nextColumns >= 5 && settings.sizePreset === 'instagram-square';
-      setTiles(compactedTiles);
-      setSettings((current) => ({
-        ...current,
+      const nextSettings = {
+        ...settingsStateRef.current,
         [key]: value,
-        sizePreset: shouldUseHighRes ? 'high-res-square' : current.sizePreset
-      }));
+        sizePreset: shouldUseHighRes ? 'high-res-square' : settingsStateRef.current.sizePreset
+      };
+      pushHistoryEntry(compactedTiles, nextSettings);
+      setTiles(compactedTiles);
+      setSettings(nextSettings);
       setStatusMessage(
         shouldUseHighRes
           ? `Set the grid to ${nextColumns} columns and switched to High Res for sharper tiles.`
@@ -623,12 +680,16 @@ export function CollageMaker() {
     }
 
     if (key === 'sizePreset' && value === 'instagram-square' && settings.columns >= 5) {
-      setSettings((current) => ({ ...current, sizePreset: 'high-res-square' }));
+      const nextSettings = { ...settingsStateRef.current, sizePreset: 'high-res-square' as const };
+      pushHistoryEntry(tilesStateRef.current, nextSettings);
+      setSettings(nextSettings);
       setStatusMessage('High Res stays on for dense square collages so the tiles stay sharp.');
       return;
     }
 
-    setSettings((current) => ({ ...current, [key]: value }));
+    const nextSettings = { ...settingsStateRef.current, [key]: value };
+    pushHistoryEntry(tilesStateRef.current, nextSettings);
+    setSettings(nextSettings);
   };
 
   const handleAutoArrange = () => {
@@ -637,11 +698,14 @@ export function CollageMaker() {
       return;
     }
 
-    setSettings((current) => getRecommendedSettings(tiles.length, current));
+    const nextSettings = getRecommendedSettings(tiles.length, settingsStateRef.current);
+    pushHistoryEntry(tilesStateRef.current, nextSettings);
+    setSettings(nextSettings);
     setStatusMessage('Applied a suggested layout.');
   };
 
   const handleReset = () => {
+    pushHistoryEntry(tilesStateRef.current, DEFAULT_COLLAGE_SETTINGS);
     setSettings(DEFAULT_COLLAGE_SETTINGS);
     setStatusMessage('Collage settings reset.');
   };
@@ -693,6 +757,8 @@ export function CollageMaker() {
       return [];
     });
     void clearCollageDraft();
+    setHistoryPast([]);
+    setHistoryFuture([]);
     setErrorMessage(null);
     setStatusMessage('Ready for a new collage.');
     setSelectedImageIndex(null);
@@ -705,15 +771,10 @@ export function CollageMaker() {
   };
 
   const handleRemoveImage = (index: number) => {
-    setTiles((current) => {
-      const nextTiles = [...current];
-      const [removed] = nextTiles.splice(index, 1);
-      if (removed) {
-        URL.revokeObjectURL(removed.objectUrl);
-      }
-
-      return nextTiles;
-    });
+    const nextTiles = [...tilesStateRef.current];
+    nextTiles.splice(index, 1);
+    pushHistoryEntry(nextTiles, settingsStateRef.current);
+    setTiles(nextTiles);
     setSelectedImageIndex((current) => {
       if (current === null) {
         return null;
@@ -846,20 +907,19 @@ export function CollageMaker() {
     rowSpan: number,
     mode: ResizeHandleMode = 'bottom-right'
   ) => {
-    setTiles((current) => {
-      const anchoredTiles = anchorTilesToCurrentLayout(current);
-      const resizedTile = getResizeAnchor(index, colSpan, rowSpan, anchoredTiles, mode);
-
-      return anchoredTiles.map((tile, currentIndex) =>
-        currentIndex === index
-          ? resizedTile ?? {
-              ...tile,
-              colSpan,
-              rowSpan
-            }
-          : tile
-      );
-    });
+    const anchoredTiles = anchorTilesToCurrentLayout(tilesStateRef.current);
+    const resizedTile = getResizeAnchor(index, colSpan, rowSpan, anchoredTiles, mode);
+    const nextTiles = anchoredTiles.map((tile, currentIndex) =>
+      currentIndex === index
+        ? resizedTile ?? {
+            ...tile,
+            colSpan,
+            rowSpan
+          }
+        : tile
+    );
+    pushHistoryEntry(nextTiles, settingsStateRef.current);
+    setTiles(nextTiles);
   };
 
   const handleResizePreview = (
@@ -885,15 +945,28 @@ export function CollageMaker() {
     rowSpan: number,
     mode: ResizeHandleMode
   ) => {
-    const nextColumns = Math.max(settings.columns, resizePreviewColumns ?? settings.columns);
+    const nextColumns = Math.max(settingsStateRef.current.columns, resizePreviewColumns ?? settingsStateRef.current.columns);
     setResizePreview(null);
     setResizePreviewColumns(null);
     setResizeHitMaxColumns(false);
-    setSettings((current) => ({
-      ...current,
-      columns: Math.max(current.columns, nextColumns)
-    }));
-    handleResizeTile(index, colSpan, rowSpan, mode);
+    const anchoredTiles = anchorTilesToCurrentLayout(tilesStateRef.current);
+    const resizedTile = getResizeAnchor(index, colSpan, rowSpan, anchoredTiles, mode);
+    const nextTiles = anchoredTiles.map((tile, currentIndex) =>
+      currentIndex === index
+        ? resizedTile ?? {
+            ...tile,
+            colSpan,
+            rowSpan
+          }
+        : tile
+    );
+    const nextSettings = {
+      ...settingsStateRef.current,
+      columns: Math.max(settingsStateRef.current.columns, nextColumns)
+    };
+    pushHistoryEntry(nextTiles, nextSettings);
+    setSettings(nextSettings);
+    setTiles(nextTiles);
     setStatusMessage(
       resizeHitMaxColumns
         ? `Tile resized to ${colSpan} × ${rowSpan}. Reached the max grid width of ${MAX_COLLAGE_COLUMNS} columns.`
@@ -1012,35 +1085,36 @@ export function CollageMaker() {
       return;
     }
 
-    setTiles((current) => {
-      const anchoredTiles = anchorTilesToCurrentLayout(current);
-      const draggedTile = anchoredTiles[draggedIndex];
-      const targetTile = anchoredTiles[index];
+    const anchoredTiles = anchorTilesToCurrentLayout(tilesStateRef.current);
+    const draggedTile = anchoredTiles[draggedIndex];
+    const targetTile = anchoredTiles[index];
 
-      if (!draggedTile || !targetTile) {
-        return current;
+    if (!draggedTile || !targetTile) {
+      handleDragEnd();
+      return;
+    }
+
+    const nextTiles = anchoredTiles.map((tile, tileIndex) => {
+      if (tileIndex === draggedIndex) {
+        return {
+          ...tile,
+          gridColumn: targetTile.gridColumn,
+          gridRow: targetTile.gridRow
+        };
       }
 
-      return anchoredTiles.map((tile, tileIndex) => {
-        if (tileIndex === draggedIndex) {
-          return {
-            ...tile,
-            gridColumn: targetTile.gridColumn,
-            gridRow: targetTile.gridRow
-          };
-        }
+      if (tileIndex === index) {
+        return {
+          ...tile,
+          gridColumn: draggedTile.gridColumn,
+          gridRow: draggedTile.gridRow
+        };
+      }
 
-        if (tileIndex === index) {
-          return {
-            ...tile,
-            gridColumn: draggedTile.gridColumn,
-            gridRow: draggedTile.gridRow
-          };
-        }
-
-        return tile;
-      });
+      return tile;
     });
+    pushHistoryEntry(nextTiles, settingsStateRef.current);
+    setTiles(nextTiles);
     setSelectedImageIndex(index);
     setStatusMessage('Preview order updated.');
     handleDragEnd();
@@ -1052,22 +1126,23 @@ export function CollageMaker() {
       return;
     }
 
-    setTiles((current) => {
-      const anchoredTiles = anchorTilesToCurrentLayout(current);
-      return anchoredTiles.map((tile, index) =>
-        index === draggedIndex
-          ? {
-              ...tile,
-              gridColumn: column,
-              gridRow: row
-            }
-          : tile
-      );
-    });
-    setSettings((current) => ({
-      ...current,
-      columns: Math.max(current.columns, Math.min(MAX_COLLAGE_COLUMNS, column + 1))
-    }));
+    const anchoredTiles = anchorTilesToCurrentLayout(tilesStateRef.current);
+    const nextTiles = anchoredTiles.map((tile, index) =>
+      index === draggedIndex
+        ? {
+            ...tile,
+            gridColumn: column,
+            gridRow: row
+          }
+        : tile
+    );
+    const nextSettings = {
+      ...settingsStateRef.current,
+      columns: Math.max(settingsStateRef.current.columns, Math.min(MAX_COLLAGE_COLUMNS, column + 1))
+    };
+    pushHistoryEntry(nextTiles, nextSettings);
+    setTiles(nextTiles);
+    setSettings(nextSettings);
 
     setSelectedImageIndex(draggedIndex);
     setStatusMessage('Photo moved.');
@@ -1105,6 +1180,34 @@ export function CollageMaker() {
     } finally {
       setIsBusy(false);
     }
+  };
+
+  const handleUndo = () => {
+    const previousEntry = historyPast[historyPast.length - 1];
+    if (!previousEntry) {
+      return;
+    }
+
+    const currentEntry = createHistoryEntry(tilesStateRef.current, settingsStateRef.current);
+    setHistoryPast((current) => current.slice(0, -1));
+    setHistoryFuture((current) => [currentEntry, ...current].slice(0, 40));
+    setTiles(cloneTiles(previousEntry.tiles));
+    setSettings({ ...previousEntry.settings });
+    setStatusMessage('Undid the last collage change.');
+  };
+
+  const handleRedo = () => {
+    const nextEntry = historyFuture[0];
+    if (!nextEntry) {
+      return;
+    }
+
+    const currentEntry = createHistoryEntry(tilesStateRef.current, settingsStateRef.current);
+    setHistoryFuture((current) => current.slice(1));
+    setHistoryPast((current) => [...current.slice(-39), currentEntry]);
+    setTiles(cloneTiles(nextEntry.tiles));
+    setSettings({ ...nextEntry.settings });
+    setStatusMessage('Redid the collage change.');
   };
 
   return (
@@ -1202,6 +1305,8 @@ export function CollageMaker() {
             settings={settings}
             presetName={presetName}
             savedPresets={savedPresets}
+            canUndo={canUndo}
+            canRedo={canRedo}
             layoutWarning={layoutAdvice.message}
             warningActions={layoutAdvice.actions.map((action) => ({
               label: action.label,
@@ -1216,6 +1321,8 @@ export function CollageMaker() {
             onApplyPreset={handleApplyPreset}
             onDeletePreset={handleDeletePreset}
             onAutoArrange={handleAutoArrange}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
             onChange={handleSettingsChange}
             onReset={() => setConfirmAction('reset')}
           />

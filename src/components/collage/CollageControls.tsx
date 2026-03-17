@@ -37,6 +37,8 @@ interface CollageControlsProps {
   settings: CollageSettings;
   presetName: string;
   savedPresets: CollageSavedPreset[];
+  canUndo: boolean;
+  canRedo: boolean;
   layoutWarning: string | null;
   warningActions: Array<{ label: string; onClick: () => void }>;
   disabled?: boolean;
@@ -45,6 +47,8 @@ interface CollageControlsProps {
   onApplyPreset: (presetId: string) => void;
   onDeletePreset: (presetId: string) => void;
   onAutoArrange: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
   onChange: <K extends keyof CollageSettings>(key: K, value: CollageSettings[K]) => void;
   onReset: () => void;
 }
@@ -53,6 +57,8 @@ export function CollageControls({
   settings,
   presetName,
   savedPresets,
+  canUndo,
+  canRedo,
   layoutWarning,
   warningActions,
   disabled = false,
@@ -61,6 +67,8 @@ export function CollageControls({
   onApplyPreset,
   onDeletePreset,
   onAutoArrange,
+  onUndo,
+  onRedo,
   onChange,
   onReset
 }: CollageControlsProps) {
@@ -72,6 +80,12 @@ export function CollageControls({
           <h2>Choose the look</h2>
         </div>
         <div className="panel-heading-actions">
+          <button type="button" className="ghost-button" onClick={onUndo} disabled={disabled || !canUndo}>
+            Undo
+          </button>
+          <button type="button" className="ghost-button" onClick={onRedo} disabled={disabled || !canRedo}>
+            Redo
+          </button>
           <button type="button" className="ghost-button" onClick={onAutoArrange} disabled={disabled}>
             Auto arrange
           </button>
