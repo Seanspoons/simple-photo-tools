@@ -1795,9 +1795,14 @@ select:disabled {
 }
 
 @media (min-width: 921px) {
-  .preview-sticky-wrap {
+  .collage-mobile-step-arrange {
     position: sticky;
     top: 20px;
+    align-self: start;
+  }
+
+  .collage-mobile-step-arrange .preview-sticky-wrap {
+    position: static;
   }
 
   .collage-arrange-panel {
