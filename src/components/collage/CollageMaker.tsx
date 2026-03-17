@@ -937,7 +937,57 @@ export function CollageMaker() {
           }
         : tile
     );
-    pushHistoryEntry(nextTiles, settingsStateRef.current);
+    let nextSettings = settingsStateRef.current;
+
+    if (settingsStateRef.current.shapePreset === 'square') {
+      let resolvedColumns: number | null = null;
+
+      for (
+        let candidateColumns = Math.max(settingsStateRef.current.columns, colSpan);
+        candidateColumns <= MAX_COLLAGE_COLUMNS;
+        candidateColumns += 1
+      ) {
+        const candidateMetrics = getCollageLayoutMetrics(nextTiles, {
+          ...settingsStateRef.current,
+          columns: candidateColumns
+        });
+
+        if (candidateMetrics.rows <= candidateColumns) {
+          resolvedColumns = candidateColumns;
+          break;
+        }
+      }
+
+      if (resolvedColumns === null) {
+        setStatusMessage(
+          `This tile cannot grow to ${colSpan} × ${rowSpan} while keeping the collage square.`
+        );
+        return;
+      }
+
+      const shouldUseHigherQuality =
+        resolvedColumns >= 5 && settingsStateRef.current.qualityPreset === 'standard';
+      nextSettings = {
+        ...settingsStateRef.current,
+        columns: resolvedColumns,
+        qualityPreset: shouldUseHigherQuality ? 'hd' : settingsStateRef.current.qualityPreset
+      };
+
+      if (resolvedColumns > settingsStateRef.current.columns) {
+        setStatusMessage(
+          shouldUseHigherQuality
+            ? `Tile resized to ${colSpan} × ${rowSpan}. The square grid grew to ${resolvedColumns} columns and switched to HD.`
+            : `Tile resized to ${colSpan} × ${rowSpan}. The square grid grew to ${resolvedColumns} columns.`
+        );
+      } else {
+        setStatusMessage(`Tile resized to ${colSpan} × ${rowSpan}.`);
+      }
+    } else {
+      setStatusMessage(`Tile resized to ${colSpan} × ${rowSpan}.`);
+    }
+
+    pushHistoryEntry(nextTiles, nextSettings);
+    setSettings(nextSettings);
     setTiles(nextTiles);
   };
 
