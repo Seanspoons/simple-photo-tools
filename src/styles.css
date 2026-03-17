@@ -494,6 +494,7 @@ select:disabled {
   opacity: 0.55;
   transform: scale(0.985);
   cursor: grabbing;
+  pointer-events: none;
 }
 
 .preview-dropzone.is-selected {

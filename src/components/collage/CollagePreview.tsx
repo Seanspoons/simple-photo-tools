@@ -238,6 +238,10 @@ export function CollagePreview({
   const emptyGridGuides = useMemo(() => {
     const occupied = new Set<string>();
     scaledCells.forEach((cell) => {
+      if (draggedIndex !== null && cell.index === draggedIndex) {
+        return;
+      }
+
       for (let rowOffset = 0; rowOffset < cell.rowSpan; rowOffset += 1) {
         for (let columnOffset = 0; columnOffset < cell.colSpan; columnOffset += 1) {
           occupied.add(`${cell.column + columnOffset}:${cell.row + rowOffset}`);
@@ -246,7 +250,7 @@ export function CollagePreview({
     });
 
     return scaledGridGuides.filter((guide) => !occupied.has(`${guide.column}:${guide.row}`));
-  }, [scaledCells, scaledGridGuides]);
+  }, [draggedIndex, scaledCells, scaledGridGuides]);
 
   const guideAppearance = useMemo(() => {
     const normalizedColor = backgroundColor.trim().toLowerCase();
@@ -410,6 +414,7 @@ export function CollagePreview({
 
     const cellTarget = scaledCells.find(
       (cell) =>
+        cell.index !== draggedIndex &&
         relativeX >= cell.x &&
         relativeX <= cell.x + cell.width &&
         relativeY >= cell.y &&
