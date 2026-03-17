@@ -146,8 +146,8 @@ export function WatermarkControls({
               i
             </span>
             <p className="helper-text">
-              Saved looks keep the watermark style, layout, and position. If you use a logo
-              watermark, keep that logo loaded too.
+              Saved looks keep your watermark style, layout, and position. If you use a logo on
+              this device, it stays ready for your next photo too.
             </p>
           </div>
         </div>

@@ -1310,8 +1310,8 @@ export function CollageMaker() {
             <p className="eyebrow">Collage Maker</p>
             <h1>Build a simple collage from your photos.</h1>
             <p className="hero-copy">
-              Add multiple photos, choose a layout, preview the collage, and save it at high
-              quality right in your browser.
+              Add your photos, arrange them right in the preview, and save a clean collage at
+              high quality right in your browser.
             </p>
           </div>
         </div>

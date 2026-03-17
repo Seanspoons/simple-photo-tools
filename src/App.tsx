@@ -32,11 +32,11 @@ export default function App() {
               <img src={logoUrl} alt="" />
             </div>
             <div>
-              <p className="eyebrow">Photo Watermarker</p>
+              <p className="eyebrow">Photo Tools</p>
               <h1>Simple photo tools that stay on your device.</h1>
               <p className="hero-copy">
-                Use the watermarker for quick text marks, or switch to the collage maker to turn
-                multiple photos into one shareable image.
+                Add text or logo watermarks, or switch to the collage maker to combine multiple
+                photos into one shareable image.
               </p>
             </div>
           </div>
@@ -70,7 +70,7 @@ export default function App() {
           <div className="site-footer-brand">
             <img src={logoUrl} alt="" aria-hidden="true" />
             <div>
-              <p className="site-footer-title">Photo Watermarker</p>
+              <p className="site-footer-title">Photo Tools</p>
               <p className="site-footer-copy">
                 Add clean text watermarks, build simple collages, and save everything right on
                 your device.
