@@ -175,6 +175,28 @@ export function CollageMaker() {
     return `${tiles.length} photos ready for your collage.`;
   }, [tiles.length]);
 
+  const canAreaFit = (
+    occupiedCells: Set<string>,
+    column: number,
+    row: number,
+    colSpan: number,
+    rowSpan: number
+  ) => {
+    if (column < 0 || row < 0 || column + colSpan > MAX_COLLAGE_COLUMNS) {
+      return false;
+    }
+
+    for (let rowOffset = 0; rowOffset < rowSpan; rowOffset += 1) {
+      for (let columnOffset = 0; columnOffset < colSpan; columnOffset += 1) {
+        if (occupiedCells.has(`${column + columnOffset}:${row + rowOffset}`)) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  };
+
   const canBuildCollage = tiles.length >= 2;
   const previewSize = useMemo(() => {
     const outputSize = getCollageOutputSize(settings);
@@ -700,28 +722,6 @@ export function CollageMaker() {
       return Math.max(0, Math.min(current, tiles.length - 2));
     });
     setStatusMessage('Photo removed.');
-  };
-
-  const canAreaFit = (
-    occupiedCells: Set<string>,
-    column: number,
-    row: number,
-    colSpan: number,
-    rowSpan: number
-  ) => {
-    if (column < 0 || row < 0 || column + colSpan > MAX_COLLAGE_COLUMNS) {
-      return false;
-    }
-
-    for (let rowOffset = 0; rowOffset < rowSpan; rowOffset += 1) {
-      for (let columnOffset = 0; columnOffset < colSpan; columnOffset += 1) {
-        if (occupiedCells.has(`${column + columnOffset}:${row + rowOffset}`)) {
-          return false;
-        }
-      }
-    }
-
-    return true;
   };
 
   const getResizeAnchor = (
