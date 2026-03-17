@@ -451,16 +451,14 @@ export function renderCollage(
     }
 
     context.save();
-    if (settings.cornerRadius > 0) {
-      withRoundedClip(
-        context,
-        packedTile.x,
-        packedTile.y,
-        packedTile.width,
-        packedTile.height,
-        settings.cornerRadius
-      );
-    }
+    withRoundedClip(
+      context,
+      packedTile.x,
+      packedTile.y,
+      packedTile.width,
+      packedTile.height,
+      settings.cornerRadius
+    );
 
     drawImageToRect(
       context,

@@ -177,6 +177,7 @@ export function CollagePreview({
       y: number;
       width: number;
       height: number;
+      borderRadius: number;
     }> = [];
 
     for (let row = 0; row < previewMetrics.frameRows; row += 1) {
@@ -187,7 +188,8 @@ export function CollagePreview({
           x: offsetX + column * (stepWidth + scaledGapX),
           y: offsetY + row * (stepHeight + scaledGapY),
           width: stepWidth,
-          height: stepHeight
+          height: stepHeight,
+          borderRadius: previewCornerRadius * Math.min(scaleX, scaleY)
         });
       }
     }
@@ -462,7 +464,8 @@ export function CollagePreview({
                         left: `${guide.x}px`,
                         top: `${guide.y}px`,
                         width: `${guide.width}px`,
-                        height: `${guide.height}px`
+                        height: `${guide.height}px`,
+                        borderRadius: `${guide.borderRadius}px`
                       }}
                     />
                   ))}
@@ -481,7 +484,8 @@ export function CollagePreview({
                             left: `${guide.x}px`,
                             top: `${guide.y}px`,
                             width: `${guide.width}px`,
-                            height: `${guide.height}px`
+                            height: `${guide.height}px`,
+                            borderRadius: `${guide.borderRadius}px`
                           }}
                           tabIndex={-1}
                           onDragEnter={() => setHoveredEmptySlot({ column: guide.column, row: guide.row })}

@@ -511,19 +511,18 @@ export function CollageMaker() {
   };
 
   const handleResizeTile = (index: number, colSpan: number, rowSpan: number) => {
-    setTiles((current) =>
-      current.map((tile, currentIndex) =>
+    setTiles((current) => {
+      const anchoredTiles = anchorTilesToCurrentLayout(current);
+      return anchoredTiles.map((tile, currentIndex) =>
         currentIndex === index
           ? {
               ...tile,
-              gridColumn: null,
-              gridRow: null,
               colSpan,
               rowSpan
             }
           : tile
-      )
-    );
+      );
+    });
   };
 
   const handleResizePreview = (index: number, colSpan: number, rowSpan: number) => {
