@@ -140,6 +140,7 @@ export function CollageMaker() {
     index: number;
     colSpan: number;
     rowSpan: number;
+    mode: ResizeHandleMode;
   } | null>(null);
   const [resizePreviewColumns, setResizePreviewColumns] = useState<number | null>(null);
   const [resizeHitMaxColumns, setResizeHitMaxColumns] = useState(false);
@@ -175,21 +176,6 @@ export function CollageMaker() {
   }, [tiles.length]);
 
   const canBuildCollage = tiles.length >= 2;
-  const previewTiles = useMemo(() => {
-    if (!resizePreview) {
-      return tiles;
-    }
-
-    return tiles.map((tile, index) =>
-      index === resizePreview.index
-        ? {
-            ...tile,
-            colSpan: resizePreview.colSpan,
-            rowSpan: resizePreview.rowSpan
-          }
-        : tile
-    );
-  }, [resizePreview, tiles]);
   const previewSize = useMemo(() => {
     const outputSize = getCollageOutputSize(settings);
     const maxPreviewWidth = 960;
@@ -202,6 +188,130 @@ export function CollageMaker() {
       height: Math.round(outputSize.height * scale * dpr)
     };
   }, [settings]);
+  const currentPackedTiles = useMemo(
+    () => getCollagePackedTiles(tiles, settings, previewSize),
+    [previewSize, settings, tiles]
+  );
+  const previewTiles = useMemo(() => {
+    if (!resizePreview) {
+      return tiles;
+    }
+
+    const currentPlacement = currentPackedTiles.find((tile) => tile.index === resizePreview.index);
+    if (!currentPlacement) {
+      return tiles.map((tile, index) =>
+        index === resizePreview.index
+          ? {
+              ...tile,
+              colSpan: resizePreview.colSpan,
+              rowSpan: resizePreview.rowSpan
+            }
+          : tile
+      );
+    }
+
+    const occupiedCells = new Set<string>();
+    currentPackedTiles.forEach((tile) => {
+      if (tile.index === resizePreview.index) {
+        return;
+      }
+
+      for (let rowOffset = 0; rowOffset < tile.rowSpan; rowOffset += 1) {
+        for (let columnOffset = 0; columnOffset < tile.colSpan; columnOffset += 1) {
+          occupiedCells.add(`${tile.column + columnOffset}:${tile.row + rowOffset}`);
+        }
+      }
+    });
+
+    let nextColumn = currentPlacement.column;
+    let nextRow = currentPlacement.row;
+    let workingColSpan = currentPlacement.colSpan;
+    let workingRowSpan = currentPlacement.rowSpan;
+    const prefersLeft = resizePreview.mode.includes('left');
+    const prefersRight = resizePreview.mode.includes('right');
+    const prefersTop = resizePreview.mode.includes('top');
+    const prefersBottom = resizePreview.mode.includes('bottom');
+
+    if (resizePreview.colSpan < currentPlacement.colSpan && prefersLeft) {
+      nextColumn += currentPlacement.colSpan - resizePreview.colSpan;
+      workingColSpan = resizePreview.colSpan;
+    }
+
+    if (resizePreview.rowSpan < currentPlacement.rowSpan && prefersTop) {
+      nextRow += currentPlacement.rowSpan - resizePreview.rowSpan;
+      workingRowSpan = resizePreview.rowSpan;
+    }
+
+    while (workingColSpan < resizePreview.colSpan) {
+      const canGrowLeft = canAreaFit(
+        occupiedCells,
+        nextColumn - 1,
+        nextRow,
+        workingColSpan + 1,
+        workingRowSpan
+      );
+      const canGrowRight = canAreaFit(
+        occupiedCells,
+        nextColumn,
+        nextRow,
+        workingColSpan + 1,
+        workingRowSpan
+      );
+
+      if (prefersLeft && canGrowLeft) {
+        nextColumn -= 1;
+      } else if (prefersRight && canGrowRight) {
+        // Keep the current anchor and grow rightward.
+      } else if (canGrowLeft && !canGrowRight) {
+        nextColumn -= 1;
+      } else if (!canGrowLeft && !canGrowRight) {
+        break;
+      }
+
+      workingColSpan += 1;
+    }
+
+    while (workingRowSpan < resizePreview.rowSpan) {
+      const canGrowUp = canAreaFit(
+        occupiedCells,
+        nextColumn,
+        nextRow - 1,
+        workingColSpan,
+        workingRowSpan + 1
+      );
+      const canGrowDown = canAreaFit(
+        occupiedCells,
+        nextColumn,
+        nextRow,
+        workingColSpan,
+        workingRowSpan + 1
+      );
+
+      if (prefersTop && canGrowUp) {
+        nextRow -= 1;
+      } else if (prefersBottom && canGrowDown) {
+        // Keep the current anchor and grow downward.
+      } else if (canGrowUp && !canGrowDown) {
+        nextRow -= 1;
+      } else if (!canGrowUp && !canGrowDown) {
+        break;
+      }
+
+      workingRowSpan += 1;
+    }
+
+    return tiles.map((tile, index) =>
+      index === resizePreview.index
+        ? {
+            ...tile,
+            gridColumn: nextColumn,
+            gridRow: nextRow,
+            colSpan: resizePreview.colSpan,
+            rowSpan: resizePreview.rowSpan
+          }
+        : tile
+    );
+  }, [currentPackedTiles, resizePreview, tiles]);
   const packedPreviewTiles = useMemo(
     () =>
       getCollagePackedTiles(
@@ -756,7 +866,7 @@ export function CollageMaker() {
     index: number,
     colSpan: number,
     rowSpan: number,
-    _mode: ResizeHandleMode
+    mode: ResizeHandleMode
   ) => {
     const previewTile = packedPreviewTiles.find((tile) => tile.index === index);
     const requestedColumns = previewTile ? previewTile.column + colSpan : previewMetrics.columns;
@@ -766,7 +876,7 @@ export function CollageMaker() {
       Math.max(current ?? previewMetrics.columns, requiredColumns)
     );
     setResizeHitMaxColumns(requestedColumns > MAX_COLLAGE_COLUMNS);
-    setResizePreview({ index, colSpan, rowSpan });
+    setResizePreview({ index, colSpan, rowSpan, mode });
   };
 
   const handleResizeCommit = (
