@@ -1299,13 +1299,8 @@ export function CollageMaker() {
               onTileSelect={setSelectedImageIndex}
               onTileDragStart={handleDragStart}
               onTileDragEnter={handleDragEnter}
-              onTileDropAt={(column, row) => {
-                if (draggedIndex === null) {
-                  handleDragEnd();
-                  return;
-                }
-
-                moveTileToAnchor(draggedIndex, column, row);
+              onTileDropAt={(index, column, row) => {
+                moveTileToAnchor(index, column, row);
               }}
               onTileDragEnd={handleDragEnd}
               onTileResizePreview={handleResizePreview}

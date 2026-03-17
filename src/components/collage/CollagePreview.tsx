@@ -49,7 +49,7 @@ interface CollagePreviewProps {
   onTileSelect?: (index: number) => void;
   onTileDragStart?: (index: number) => void;
   onTileDragEnter?: (index: number) => void;
-  onTileDropAt?: (column: number, row: number) => void;
+  onTileDropAt?: (index: number, column: number, row: number) => void;
   onTileDragEnd?: () => void;
   onTileResizePreview?: (
     index: number,
@@ -450,10 +450,16 @@ export function CollagePreview({
     scaledCells
   ]);
 
-  const handleEmptySlotDrop = (column: number, row: number, colSpan = 1, rowSpan = 1) => {
+  const handleEmptySlotDrop = (
+    tileIndex: number,
+    column: number,
+    row: number,
+    colSpan = 1,
+    rowSpan = 1
+  ) => {
     setHoveredEmptySlot(null);
     const anchor = getAnchorFromTarget(column, row, colSpan, rowSpan);
-    onTileDropAt?.(anchor.column, anchor.row);
+    onTileDropAt?.(tileIndex, anchor.column, anchor.row);
   };
 
   const getPointerDropTarget = (clientX: number, clientY: number) => {
@@ -561,13 +567,14 @@ export function CollagePreview({
     if (target?.type === 'cell') {
       const draggedCell = scaledCells.find((cell) => cell.index === touchState.index);
       handleEmptySlotDrop(
+        touchState.index,
         target.column,
         target.row,
         draggedCell?.colSpan ?? 1,
         draggedCell?.rowSpan ?? 1
       );
     } else if (target?.type === 'empty') {
-      handleEmptySlotDrop(target.column, target.row);
+      handleEmptySlotDrop(touchState.index, target.column, target.row);
     } else {
       onTileDragEnd?.();
     }
@@ -808,7 +815,7 @@ export function CollagePreview({
                           tabIndex={-1}
                           onDragEnter={() => setHoveredEmptySlot({ column: guide.column, row: guide.row })}
                           onDragOver={(event) => event.preventDefault()}
-                          onDrop={() => handleEmptySlotDrop(guide.column, guide.row)}
+                          onDrop={() => draggedIndex !== null && handleEmptySlotDrop(draggedIndex, guide.column, guide.row)}
                         />
                       ))
                     : null}
@@ -864,7 +871,16 @@ export function CollagePreview({
                         onTileDragEnter?.(index);
                       }}
                       onDragOver={(event) => event.preventDefault()}
-                      onDrop={() => handleEmptySlotDrop(cell.column, cell.row, cell.colSpan, cell.rowSpan)}
+                      onDrop={() =>
+                        draggedIndex !== null &&
+                        handleEmptySlotDrop(
+                          draggedIndex,
+                          cell.column,
+                          cell.row,
+                          cell.colSpan,
+                          cell.rowSpan
+                        )
+                      }
                       onDragEnd={handleTileDragEnd}
                       onPointerDown={(event) => handleTouchDragStart(event, index, cell)}
                       onPointerMove={handleTouchDragMove}
