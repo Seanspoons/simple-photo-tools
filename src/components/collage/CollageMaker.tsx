@@ -543,6 +543,23 @@ export function CollageMaker() {
     setResizePreviewColumns(null);
   };
 
+  const anchorTilesToCurrentLayout = (currentTiles: CollageTile[]) => {
+    const packedById = new Map(
+      packedPreviewTiles.map((tile) => [tile.id, { column: tile.column, row: tile.row }])
+    );
+
+    return currentTiles.map((tile) => {
+      const packed = packedById.get(tile.id);
+      return packed
+        ? {
+            ...tile,
+            gridColumn: packed.column,
+            gridRow: packed.row
+          }
+        : tile;
+    });
+  };
+
   const reorderImages = (fromIndex: number, toIndex: number) => {
     setTiles((current) => {
       if (
@@ -558,24 +575,6 @@ export function CollageMaker() {
       const nextTiles = [...current];
       const [selected] = nextTiles.splice(fromIndex, 1);
       nextTiles.splice(toIndex, 0, selected);
-      return nextTiles;
-    });
-  };
-
-  const swapImages = (fromIndex: number, toIndex: number) => {
-    setTiles((current) => {
-      if (
-        fromIndex === toIndex ||
-        fromIndex < 0 ||
-        toIndex < 0 ||
-        fromIndex >= current.length ||
-        toIndex >= current.length
-      ) {
-        return current;
-      }
-
-      const nextTiles = [...current];
-      [nextTiles[fromIndex], nextTiles[toIndex]] = [nextTiles[toIndex], nextTiles[fromIndex]];
       return nextTiles;
     });
   };
@@ -620,7 +619,35 @@ export function CollageMaker() {
       return;
     }
 
-    swapImages(draggedIndex, index);
+    setTiles((current) => {
+      const anchoredTiles = anchorTilesToCurrentLayout(current);
+      const draggedTile = anchoredTiles[draggedIndex];
+      const targetTile = anchoredTiles[index];
+
+      if (!draggedTile || !targetTile) {
+        return current;
+      }
+
+      return anchoredTiles.map((tile, tileIndex) => {
+        if (tileIndex === draggedIndex) {
+          return {
+            ...tile,
+            gridColumn: targetTile.gridColumn,
+            gridRow: targetTile.gridRow
+          };
+        }
+
+        if (tileIndex === index) {
+          return {
+            ...tile,
+            gridColumn: draggedTile.gridColumn,
+            gridRow: draggedTile.gridRow
+          };
+        }
+
+        return tile;
+      });
+    });
     setSelectedImageIndex(index);
     setStatusMessage('Preview order updated.');
     handleDragEnd();
@@ -632,8 +659,9 @@ export function CollageMaker() {
       return;
     }
 
-    setTiles((current) =>
-      current.map((tile, index) =>
+    setTiles((current) => {
+      const anchoredTiles = anchorTilesToCurrentLayout(current);
+      return anchoredTiles.map((tile, index) =>
         index === draggedIndex
           ? {
               ...tile,
@@ -641,8 +669,8 @@ export function CollageMaker() {
               gridRow: row
             }
           : tile
-      )
-    );
+      );
+    });
 
     setSelectedImageIndex(draggedIndex);
     setStatusMessage('Photo moved.');
