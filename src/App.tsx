@@ -5,6 +5,7 @@ import { ImageConverterTool } from './components/converter/ImageConverterTool';
 import { CropTool } from './components/crop/CropTool';
 import { RemoveMetadataTool } from './components/metadata/RemoveMetadataTool';
 import { RotateFlipTool } from './components/rotate/RotateFlipTool';
+import { SocialMediaFormatterTool } from './components/social/SocialMediaFormatterTool';
 import { PhotoResizerTool } from './components/resizer/PhotoResizerTool';
 import { applyRouteSeo } from './seo';
 import { WatermarkTool } from './components/watermark/WatermarkTool';
@@ -58,7 +59,8 @@ const LIVE_TOOL_LINKS: Array<{ path: AppRoute; label: string }> = [
   { path: '/compress', label: 'Image Compressor' },
   { path: '/crop', label: 'Crop Tool' },
   { path: '/metadata', label: 'Remove Metadata' },
-  { path: '/rotate', label: 'Rotate / Flip' }
+  { path: '/rotate', label: 'Rotate / Flip' },
+  { path: '/social', label: 'Social Media Formatter' }
 ];
 
 const TOOL_CARDS: ToolCard[] = [
@@ -123,7 +125,7 @@ const TOOL_CARDS: ToolCard[] = [
     name: 'Social Media Formatter',
     description: 'Format images for Instagram, TikTok, and more.',
     blurb: 'Useful when one photo needs different social sizes.',
-    status: 'soon',
+    status: 'live',
     icon: 'social'
   },
   {
@@ -344,6 +346,8 @@ function RouteIntro({
                   ? 'Remove Metadata'
                   : route === '/rotate'
                     ? 'Rotate / Flip'
+                    : route === '/social'
+                      ? 'Social Media Formatter'
         : 'Coming Soon';
 
   return (
@@ -704,7 +708,7 @@ export default function App() {
       case '/rotate':
         return <RotateFlipTool />;
       case '/social':
-        return <ComingSoonPage toolName="Social Media Formatter" onNavigate={navigateTo} />;
+        return <SocialMediaFormatterTool />;
       case '/metadata':
         return <RemoveMetadataTool />;
       case '/border':
