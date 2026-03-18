@@ -10,6 +10,7 @@ Current tools:
 - Image Converter
 - Photo Resizer
 - Image Compressor
+- Crop Tool
 
 ## What it does
 
@@ -42,6 +43,12 @@ Current tools:
 - Handle transparent images cleanly when saving to JPEG
 - Export the compressed result locally in the browser
 
+### Crop Tool
+- Drag the crop area and resize it with simple corner handles
+- Switch between free crop and common aspect ratio presets
+- Preview the cropped result before saving
+- Export the selected crop locally in the browser
+
 ## Product direction
 
 This project started as a watermarking app and is being expanded into a broader suite of browser-based photo tools. The homepage now acts as a simple tool hub, with dedicated routes for each tool:
@@ -52,6 +59,7 @@ This project started as a watermarking app and is being expanded into a broader 
 - `/convert`
 - `/resize`
 - `/compress`
+- `/crop`
 
 Additional tools will be added over time.
 

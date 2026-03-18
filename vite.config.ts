@@ -17,6 +17,7 @@ export default defineConfig(() => {
           convert: resolve(__dirname, 'convert/index.html'),
           resize: resolve(__dirname, 'resize/index.html'),
           compress: resolve(__dirname, 'compress/index.html'),
+          crop: resolve(__dirname, 'crop/index.html'),
           resizeImageOnline: resolve(__dirname, 'resize-image-online/index.html'),
           compressImageOnline: resolve(__dirname, 'compress-image-online/index.html'),
           convertHeicToJpg: resolve(__dirname, 'convert-heic-to-jpg/index.html'),

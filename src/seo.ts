@@ -59,6 +59,14 @@ export const ROUTE_SEO: Record<string, RouteSeo> = {
     image: 'https://simplephototools.com/og-compressor.png',
     imageAlt: 'Image Compressor tool preview card'
   },
+  '/crop': {
+    title: 'Crop Tool | Crop Images in Your Browser with Free or Fixed Ratios',
+    description:
+      'Crop images in your browser with a simple drag-and-resize crop box, aspect ratio presets, and private client-side export.',
+    canonicalPath: '/crop',
+    image: 'https://simplephototools.com/og-home.png',
+    imageAlt: 'Crop Tool preview card'
+  },
   '/resize-image-online': {
     title: 'Resize Image Online | Free Browser-Based Photo Resizer',
     description:
