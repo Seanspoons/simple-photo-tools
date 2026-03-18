@@ -3,6 +3,7 @@ import { CollageMaker } from './components/collage/CollageMaker';
 import { ImageCompressorTool } from './components/compressor/ImageCompressorTool';
 import { ImageConverterTool } from './components/converter/ImageConverterTool';
 import { CropTool } from './components/crop/CropTool';
+import { RemoveMetadataTool } from './components/metadata/RemoveMetadataTool';
 import { PhotoResizerTool } from './components/resizer/PhotoResizerTool';
 import { applyRouteSeo } from './seo';
 import { WatermarkTool } from './components/watermark/WatermarkTool';
@@ -52,7 +53,8 @@ const LIVE_TOOL_LINKS: Array<{ path: AppRoute; label: string }> = [
   { path: '/convert', label: 'Image Converter' },
   { path: '/resize', label: 'Photo Resizer' },
   { path: '/compress', label: 'Image Compressor' },
-  { path: '/crop', label: 'Crop Tool' }
+  { path: '/crop', label: 'Crop Tool' },
+  { path: '/metadata', label: 'Remove Metadata' }
 ];
 
 const TOOL_CARDS: ToolCard[] = [
@@ -125,7 +127,7 @@ const TOOL_CARDS: ToolCard[] = [
     name: 'Metadata Remover',
     description: 'Remove photo details before you share or save.',
     blurb: 'Helpful when you want a cleaner, more private file.',
-    status: 'soon',
+    status: 'live',
     icon: 'metadata'
   },
   {
@@ -332,6 +334,8 @@ function RouteIntro({
               ? 'Image Compressor'
               : route === '/crop' || route === '/crop-image-online'
                 ? 'Crop Tool'
+                : route === '/metadata'
+                  ? 'Remove Metadata'
         : 'Coming Soon';
 
   return (
@@ -662,7 +666,7 @@ export default function App() {
       case '/social':
         return <ComingSoonPage toolName="Social Media Formatter" onNavigate={navigateTo} />;
       case '/metadata':
-        return <ComingSoonPage toolName="Metadata Remover" onNavigate={navigateTo} />;
+        return <RemoveMetadataTool />;
       case '/border':
         return <ComingSoonPage toolName="Border Maker" onNavigate={navigateTo} />;
       default:
