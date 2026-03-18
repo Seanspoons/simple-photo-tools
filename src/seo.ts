@@ -48,15 +48,15 @@ export const ROUTE_SEO: Record<string, RouteSeo> = {
     description:
       'Resize images for websites, social posts, and email right in your browser with width, height, and aspect ratio controls.',
     canonicalPath: '/resize',
-    image: 'https://simplephototools.com/og-home.png',
+    image: 'https://simplephototools.com/og-resizer.png',
     imageAlt: 'Photo Resizer tool preview card'
   },
   '/compress': {
     title: 'Image Compressor | Make Image Files Smaller Online',
     description:
-      'Make image files smaller in your browser with simple quality controls for JPEG and WebP, with no uploads or account needed.',
+      'Make image files smaller in your browser with simple quality controls for JPEG, PNG, and WebP, with no uploads or account needed.',
     canonicalPath: '/compress',
-    image: 'https://simplephototools.com/og-home.png',
+    image: 'https://simplephototools.com/og-compressor.png',
     imageAlt: 'Image Compressor tool preview card'
   },
   '/resize-image-online': {
@@ -64,7 +64,7 @@ export const ROUTE_SEO: Record<string, RouteSeo> = {
     description:
       'Resize an image online in your browser with width, height, and aspect ratio controls, with no uploads and no account required.',
     canonicalPath: '/resize-image-online',
-    image: 'https://simplephototools.com/og-home.png',
+    image: 'https://simplephototools.com/og-resizer.png',
     imageAlt: 'Resize image online landing page preview'
   },
   '/compress-image-online': {
@@ -72,7 +72,7 @@ export const ROUTE_SEO: Record<string, RouteSeo> = {
     description:
       'Compress an image online in your browser to make the file smaller with simple JPEG, PNG, and WebP export options.',
     canonicalPath: '/compress-image-online',
-    image: 'https://simplephototools.com/og-home.png',
+    image: 'https://simplephototools.com/og-compressor.png',
     imageAlt: 'Compress image online landing page preview'
   },
   '/convert-heic-to-jpg': {
