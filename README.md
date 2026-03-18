@@ -37,7 +37,7 @@ Current tools:
 - Send the resized result straight into the Image Compressor
 
 ### Image Compressor
-- Make image files smaller with simple JPEG and WebP quality controls
+- Make image files smaller with simple JPEG, PNG, and WebP export options
 - Preview the expected file size change before saving
 - Handle transparent images cleanly when saving to JPEG
 - Export the compressed result locally in the browser

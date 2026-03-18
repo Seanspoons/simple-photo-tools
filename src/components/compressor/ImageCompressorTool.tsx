@@ -120,7 +120,7 @@ function detectTransparency(image: HTMLImageElement): boolean {
 
 function defaultCompressionFormat(asset: ImageAsset): ExportFormat {
   if (/\.png$/i.test(asset.name) || asset.mimeType === 'image/png') {
-    return 'webp';
+    return 'png';
   }
 
   if (/\.webp$/i.test(asset.name) || asset.mimeType === 'image/webp') {
@@ -291,6 +291,7 @@ export function ImageCompressorTool() {
   }, [imageAsset]);
 
   const qualityPercent = Math.round(quality * 100);
+  const usesLossyCompression = outputFormat === 'jpeg' || outputFormat === 'webp';
 
   const handleFileSelect = async (file: File) => {
     setIsBusy(true);
@@ -383,7 +384,7 @@ export function ImageCompressorTool() {
               Lower image file size right in your browser with simple quality controls and no uploads.
             </p>
             <div className="hero-tags" aria-label="Image compressor highlights">
-              <span className="hero-tag">JPEG or WebP</span>
+              <span className="hero-tag">JPEG, PNG, or WebP</span>
               <span className="hero-tag">Quality slider</span>
               <span className="hero-tag">Private in browser</span>
             </div>
@@ -454,7 +455,7 @@ export function ImageCompressorTool() {
             <div className="preview-compare-bar" aria-label="Compression output format">
               <span className="preview-compare-label">Format</span>
               <div className="preview-compare-toggle" role="tablist" aria-label="Compression output format">
-                {(['jpeg', 'webp'] as ExportFormat[]).map((format) => (
+                {(['jpeg', 'png', 'webp'] as ExportFormat[]).map((format) => (
                   <button
                     key={format}
                     type="button"
@@ -470,21 +471,30 @@ export function ImageCompressorTool() {
               </div>
             </div>
             <div className="controls-grid">
-              <label className="field field-full">
-                <span>Quality</span>
-                <input
-                  type="range"
-                  min="0.5"
-                  max="1"
-                  step="0.01"
-                  value={quality}
-                  onChange={(event) => setQuality(Number(event.target.value))}
-                  disabled={!imageAsset || isBusy}
-                />
-                <p className="helper-text">
-                  Smaller file <strong>{qualityPercent}%</strong> Better quality
-                </p>
-              </label>
+              {usesLossyCompression ? (
+                <label className="field field-full">
+                  <span>Quality</span>
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="1"
+                    step="0.01"
+                    value={quality}
+                    onChange={(event) => setQuality(Number(event.target.value))}
+                    disabled={!imageAsset || isBusy}
+                  />
+                  <p className="helper-text">
+                    Smaller file <strong>{qualityPercent}%</strong> Better quality
+                  </p>
+                </label>
+              ) : (
+                <div className="field field-full">
+                  <span>Quality</span>
+                  <p className="helper-text">
+                    PNG keeps full image quality and transparency. File size may not shrink as much.
+                  </p>
+                </div>
+              )}
               {outputFormat === 'jpeg' && hasTransparency ? (
                 <label className="field field-full">
                   <span>Background color</span>
