@@ -18,6 +18,8 @@ type AppRoute =
   | '/rotate'
   | '/social'
   | '/metadata'
+  | '/resize-image-online'
+  | '/compress-image-online'
   | '/convert-heic-to-jpg'
   | '/add-watermark-to-photo'
   | '/make-photo-collage-online';
@@ -147,6 +149,8 @@ function normalizeRoute(pathname: string): AppRoute {
     cleanPath === '/rotate' ||
     cleanPath === '/social' ||
     cleanPath === '/metadata' ||
+    cleanPath === '/resize-image-online' ||
+    cleanPath === '/compress-image-online' ||
     cleanPath === '/convert-heic-to-jpg' ||
     cleanPath === '/add-watermark-to-photo' ||
     cleanPath === '/make-photo-collage-online'
@@ -314,8 +318,10 @@ function RouteIntro({
         : route === '/convert' || route === '/convert-heic-to-jpg'
           ? 'Image Converter'
           : route === '/resize'
+            || route === '/resize-image-online'
             ? 'Photo Resizer'
             : route === '/compress'
+              || route === '/compress-image-online'
               ? 'Image Compressor'
         : 'Coming Soon';
 
@@ -539,6 +545,38 @@ export default function App() {
             bulletC="Private in browser"
             ctaLabel="Open Image Converter"
             ctaPath="/convert"
+            secondaryLabel="Go Home"
+            secondaryPath="/"
+            onNavigate={navigateTo}
+          />
+        );
+      case '/resize-image-online':
+        return (
+          <LandingPage
+            eyebrow="Resize Image Online"
+            title="Resize an image online without uploading it anywhere."
+            copy="Set a new width and height, keep the aspect ratio locked when you want to, and save a resized image right in your browser."
+            bulletA="Width and height"
+            bulletB="Aspect ratio lock"
+            bulletC="Private in browser"
+            ctaLabel="Open Photo Resizer"
+            ctaPath="/resize"
+            secondaryLabel="Go Home"
+            secondaryPath="/"
+            onNavigate={navigateTo}
+          />
+        );
+      case '/compress-image-online':
+        return (
+          <LandingPage
+            eyebrow="Compress Image Online"
+            title="Compress an image online to make the file smaller."
+            copy="Lower image file size with simple browser-based controls for JPEG, PNG, and WebP without sending your photo to a server."
+            bulletA="Smaller file sizes"
+            bulletB="Simple quality controls"
+            bulletC="Private in browser"
+            ctaLabel="Open Image Compressor"
+            ctaPath="/compress"
             secondaryLabel="Go Home"
             secondaryPath="/"
             onNavigate={navigateTo}

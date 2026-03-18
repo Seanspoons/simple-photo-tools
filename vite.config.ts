@@ -17,6 +17,8 @@ export default defineConfig(() => {
           convert: resolve(__dirname, 'convert/index.html'),
           resize: resolve(__dirname, 'resize/index.html'),
           compress: resolve(__dirname, 'compress/index.html'),
+          resizeImageOnline: resolve(__dirname, 'resize-image-online/index.html'),
+          compressImageOnline: resolve(__dirname, 'compress-image-online/index.html'),
           convertHeicToJpg: resolve(__dirname, 'convert-heic-to-jpg/index.html'),
           addWatermarkToPhoto: resolve(__dirname, 'add-watermark-to-photo/index.html'),
           makePhotoCollageOnline: resolve(__dirname, 'make-photo-collage-online/index.html')
