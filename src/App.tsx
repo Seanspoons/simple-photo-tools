@@ -35,6 +35,12 @@ interface ToolCard {
     | 'metadata';
 }
 
+const LIVE_TOOL_LINKS: Array<{ path: AppRoute; label: string }> = [
+  { path: '/watermarker', label: 'Watermarker' },
+  { path: '/collage', label: 'Collage Maker' },
+  { path: '/convert', label: 'Image Converter' }
+];
+
 const TOOL_CARDS: ToolCard[] = [
   {
     path: '/watermarker',
@@ -288,6 +294,7 @@ function RouteIntro({
 }) {
   const logoUrl = `${import.meta.env.BASE_URL}icon.svg`;
   const isHome = route === '/';
+  const [isToolMenuOpen, setIsToolMenuOpen] = useState(false);
   const activeLabel =
     route === '/watermarker'
       ? 'Photo Watermarker'
@@ -321,27 +328,38 @@ function RouteIntro({
         >
           Home
         </button>
-        <button
-          type="button"
-          className={`tool-switch-button ${route === '/watermarker' ? 'is-active' : ''}`}
-          onClick={() => onNavigate('/watermarker')}
-        >
-          Watermarker
-        </button>
-        <button
-          type="button"
-          className={`tool-switch-button ${route === '/collage' ? 'is-active' : ''}`}
-          onClick={() => onNavigate('/collage')}
-        >
-          Collage Maker
-        </button>
-        <button
-          type="button"
-          className={`tool-switch-button ${route === '/convert' ? 'is-active' : ''}`}
-          onClick={() => onNavigate('/convert')}
-        >
-          Converter
-        </button>
+        <div className="tool-menu">
+          <button
+            type="button"
+            className={`tool-switch-button tool-menu-trigger ${!isHome ? 'is-active' : ''}`}
+            aria-expanded={isToolMenuOpen}
+            aria-haspopup="menu"
+            onClick={() => setIsToolMenuOpen((current) => !current)}
+          >
+            <span>All Tools</span>
+            <span className={`tool-menu-chevron ${isToolMenuOpen ? 'is-open' : ''}`} aria-hidden="true">
+              ▾
+            </span>
+          </button>
+          {isToolMenuOpen ? (
+            <div className="tool-menu-panel" role="menu" aria-label="Live tools">
+              {LIVE_TOOL_LINKS.map((tool) => (
+                <button
+                  key={tool.path}
+                  type="button"
+                  role="menuitem"
+                  className={`tool-menu-item ${route === tool.path ? 'is-active' : ''}`}
+                  onClick={() => {
+                    setIsToolMenuOpen(false);
+                    onNavigate(tool.path);
+                  }}
+                >
+                  {tool.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
       </div>
     </section>
   );
