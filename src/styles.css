@@ -163,7 +163,7 @@ select:disabled {
 }
 
 .tool-switcher-suite {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .tool-switch-button {
@@ -1778,6 +1778,10 @@ select:disabled {
   .layout-grid,
   .suite-grid {
     grid-template-columns: 1fr;
+  }
+
+  .tool-switcher-suite {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .collage-layout-grid > .left-column,

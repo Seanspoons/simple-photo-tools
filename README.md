@@ -7,6 +7,7 @@ Live site: https://simplephototools.com
 Current tools:
 - Photo Watermarker
 - Collage Maker
+- Image Converter
 
 Planned next tools:
 - Photo Resizer
@@ -26,6 +27,12 @@ Planned next tools:
 - Arrange and resize tiles directly in the preview
 - Export high-quality JPEG or PNG collages
 
+### Image Converter
+- Convert images between JPEG, PNG, and WebP
+- Open JPEG, PNG, WebP, HEIC, and HEIF files locally
+- Adjust quality for JPEG and WebP exports
+- Fill transparent areas with a chosen background color when saving to JPEG
+
 ## Product direction
 
 This project started as a watermarking app and is being expanded into a broader suite of browser-based photo tools. The homepage now acts as a simple tool hub, with dedicated routes for each tool:
@@ -33,6 +40,7 @@ This project started as a watermarking app and is being expanded into a broader 
 - `/`
 - `/watermarker`
 - `/collage`
+- `/convert`
 
 Additional tools will be added over time.
 
