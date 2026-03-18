@@ -476,9 +476,9 @@ export function SocialMediaFormatterTool() {
                         disabled={isBusy}
                       >
                         <span className="output-preview social-output-preview" style={getPresetPreviewStyle(preset)} />
-                        <span>
-                          <strong>{preset.label}</strong>
-                          <span className="suite-status-note">
+                        <span className="social-preset-card-copy">
+                          <span className="social-preset-card-title">{preset.label}</span>
+                          <span className="social-preset-card-dimensions">
                             {preset.width} × {preset.height}
                           </span>
                         </span>

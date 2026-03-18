@@ -80,7 +80,7 @@ export const ROUTE_SEO: Record<string, RouteSeo> = {
     description:
       'Format images for Instagram, TikTok, LinkedIn, X, and more with simple presets, fit or fill controls, padding, and private browser-based export.',
     canonicalPath: '/social',
-    image: 'https://simplephototools.com/og-home.png',
+    image: 'https://simplephototools.com/og-social.png',
     imageAlt: 'Social Media Formatter tool preview card'
   },
   '/metadata': {
@@ -128,7 +128,7 @@ export const ROUTE_SEO: Record<string, RouteSeo> = {
     description:
       'Format an image for social media in your browser with presets for Instagram, TikTok, LinkedIn, X, and more, with fit or fill controls and private export.',
     canonicalPath: '/format-image-for-social-media',
-    image: 'https://simplephototools.com/og-home.png',
+    image: 'https://simplephototools.com/og-social.png',
     imageAlt: 'Format image for social media landing page preview'
   },
   '/convert-image-online': {

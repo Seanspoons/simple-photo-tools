@@ -1360,6 +1360,22 @@ select:disabled {
   color: var(--accent);
 }
 
+.social-preset-card-copy {
+  display: grid;
+  gap: 4px;
+  align-content: center;
+}
+
+.social-preset-card-title {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.social-preset-card-dimensions {
+  color: var(--text-soft);
+  font-size: 0.88rem;
+}
+
 .output-choice-card {
   display: grid;
   grid-template-columns: 72px 1fr;
