@@ -760,6 +760,102 @@ select:disabled {
   cursor: nwse-resize;
 }
 
+.metadata-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.metadata-summary-card {
+  min-height: 112px;
+}
+
+.metadata-summary-status {
+  margin: 8px 0 0;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.metadata-summary-status.is-found {
+  color: var(--accent);
+}
+
+.metadata-group-stack {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.metadata-details {
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: #faf8f3;
+  padding: 0 16px 14px;
+}
+
+.metadata-details summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+  padding: 14px 0;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.metadata-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.metadata-status-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #ffffff;
+  color: var(--text-soft);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.metadata-status-chip.is-found {
+  color: var(--accent);
+  border-color: rgba(217, 162, 77, 0.35);
+  background: #fff7ea;
+}
+
+.metadata-detail-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.metadata-detail-row {
+  display: grid;
+  grid-template-columns: minmax(0, 160px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.metadata-detail-row dt,
+.metadata-detail-row dd {
+  margin: 0;
+}
+
+.metadata-detail-row dt {
+  color: var(--accent-soft);
+  font-weight: 700;
+}
+
+.metadata-detail-row dd {
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
 .preview-dropzone-layer {
   position: absolute;
   pointer-events: none;
@@ -2104,6 +2200,15 @@ select:disabled {
 
   .output-choice-grid {
     grid-template-columns: 1fr;
+  }
+
+  .metadata-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metadata-detail-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
   }
 
   .tool-switcher-suite {
