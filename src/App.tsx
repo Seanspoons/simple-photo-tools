@@ -182,21 +182,27 @@ function ToolIcon({ kind }: { kind: ToolCard['icon'] }) {
         {kind === 'convert' ? (
           <>
             <path
-              d="M21 21h11l4 4v18H21z"
+              d="M11 12H22L26 16V34H11V12Z"
               className="icon-surface"
               strokeLinejoin="round"
             />
-            <path d="M32 21v5h5" className="icon-accent-outline" strokeLinejoin="round" />
+            <path d="M21 12V18H27" className="icon-accent-outline" strokeLinejoin="round" />
             <path
-              d="M36 35h11l4 4v18H36z"
+              d="M44 38H55L59 42V60H44V38Z"
               className="icon-surface-strong"
               strokeLinejoin="round"
             />
-            <path d="M47 35v5h5" className="icon-accent-outline" strokeLinejoin="round" />
-            <path d="M38 14a20 20 0 0 1 17 14" className="icon-accent-stroke" />
-            <path d="M49.5 20.5l5.5 7-8-.2" className="icon-accent-stroke" />
-            <path d="M34 59a20 20 0 0 1-17-14" className="icon-accent-stroke" />
-            <path d="M22.5 52.5l-5.5-7 8 .2" className="icon-accent-stroke" />
+            <path d="M54 38V44H60" className="icon-accent-outline" strokeLinejoin="round" />
+            <path
+              d="M34 14C37.8928 14.4137 41.5786 15.9608 44.6005 18.4494C47.6224 20.938 49.8475 24.2588 51 28"
+              className="icon-accent-stroke"
+            />
+            <path d="M52.9514 22.8276L51.3305 31.5811L46.1951 25.4436" className="icon-accent-stroke" />
+            <path
+              d="M37 56C33.1072 55.5863 29.4214 54.0392 26.3995 51.5506C23.3776 49.062 21.1525 45.7412 20 42"
+              className="icon-accent-stroke"
+            />
+            <path d="M18.0166 47.8693L18.7819 39L24.4876 44.6111" className="icon-accent-stroke" />
           </>
         ) : null}
         {kind === 'crop' ? (
@@ -223,11 +229,20 @@ function ToolIcon({ kind }: { kind: ToolCard['icon'] }) {
         ) : null}
         {kind === 'social' ? (
           <>
-            <rect x="14" y="18" width="18" height="32" rx="8" className="icon-surface" />
-            <rect x="39" y="14" width="18" height="18" rx="7" className="icon-accent-soft-fill" />
-            <rect x="36" y="38" width="24" height="20" rx="8" className="icon-surface-strong" />
-            <path d="M32 34l7-5" className="icon-accent-stroke" />
-            <path d="M31 40l5 4" className="icon-accent-stroke" />
+            <path
+              d="M24 18H22C17.5817 18 14 21.5817 14 26V42C14 46.4183 17.5817 50 22 50H24C28.4183 50 32 46.4183 32 42V26C32 21.5817 28.4183 18 24 18Z"
+              className="icon-surface"
+            />
+            <path
+              d="M50 14H46C42.134 14 39 17.134 39 21V25C39 28.866 42.134 32 46 32H50C53.866 32 57 28.866 57 25V21C57 17.134 53.866 14 50 14Z"
+              className="icon-accent-soft-fill"
+            />
+            <path
+              d="M52 38H44C39.5817 38 36 41.5817 36 46V50C36 54.4183 39.5817 58 44 58H52C56.4183 58 60 54.4183 60 50V46C60 41.5817 56.4183 38 52 38Z"
+              className="icon-surface-strong"
+            />
+            <path d="M32 34L40 28" className="icon-accent-stroke" />
+            <path d="M32 42L36 44" className="icon-accent-stroke" />
           </>
         ) : null}
         {kind === 'border' ? (
