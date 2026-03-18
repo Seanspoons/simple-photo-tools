@@ -605,6 +605,114 @@ select:disabled {
   pointer-events: none;
 }
 
+.crop-preview-shell {
+  overflow: visible;
+}
+
+.crop-preview-stage {
+  position: relative;
+  touch-action: none;
+  user-select: none;
+}
+
+.crop-preview-stage .preview-canvas {
+  display: block;
+}
+
+.crop-selection {
+  position: absolute;
+  border: 2px solid rgba(255, 252, 246, 0.95);
+  box-shadow:
+    0 0 0 9999px rgba(24, 32, 27, 0.38),
+    inset 0 0 0 1px rgba(217, 162, 77, 0.92);
+  cursor: move;
+  touch-action: none;
+}
+
+.crop-selection.is-active {
+  box-shadow:
+    0 0 0 9999px rgba(24, 32, 27, 0.44),
+    inset 0 0 0 2px rgba(217, 162, 77, 0.96);
+}
+
+.crop-selection-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.crop-selection-grid::before,
+.crop-selection-grid::after,
+.crop-selection-grid span::before,
+.crop-selection-grid span::after {
+  content: "";
+  position: absolute;
+  background: rgba(255, 252, 246, 0.55);
+}
+
+.crop-selection-grid::before {
+  top: 0;
+  bottom: 0;
+  left: 33.333%;
+  width: 1px;
+}
+
+.crop-selection-grid::after {
+  top: 0;
+  bottom: 0;
+  left: 66.666%;
+  width: 1px;
+}
+
+.crop-selection-grid span::before {
+  left: 0;
+  right: 0;
+  top: 33.333%;
+  height: 1px;
+}
+
+.crop-selection-grid span::after {
+  left: 0;
+  right: 0;
+  top: 66.666%;
+  height: 1px;
+}
+
+.crop-handle {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 252, 246, 0.94);
+  background: #d9a24d;
+  box-shadow: 0 4px 12px rgba(24, 32, 27, 0.16);
+  padding: 0;
+}
+
+.crop-handle-nw {
+  top: -9px;
+  left: -9px;
+  cursor: nwse-resize;
+}
+
+.crop-handle-ne {
+  top: -9px;
+  right: -9px;
+  cursor: nesw-resize;
+}
+
+.crop-handle-sw {
+  bottom: -9px;
+  left: -9px;
+  cursor: nesw-resize;
+}
+
+.crop-handle-se {
+  right: -9px;
+  bottom: -9px;
+  cursor: nwse-resize;
+}
+
 .preview-dropzone-layer {
   position: absolute;
   pointer-events: none;
@@ -1940,6 +2048,7 @@ select:disabled {
 
   .preview-compare-toggle {
     width: 100%;
+    flex-wrap: wrap;
   }
 
   .preview-compare-button {
