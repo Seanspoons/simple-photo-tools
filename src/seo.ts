@@ -40,7 +40,7 @@ export const ROUTE_SEO: Record<string, RouteSeo> = {
     description:
       'Convert images between JPG, PNG, and WebP in your browser. Open HEIC, HEIF, GIF, BMP, AVIF, and SVG files locally with no uploads.',
     canonicalPath: '/convert',
-    image: 'https://simplephototools.com/og-convert.svg',
+    image: 'https://simplephototools.com/og-convert.png',
     imageAlt: 'Image Converter preview card'
   },
   '/convert-heic-to-jpg': {
@@ -48,7 +48,7 @@ export const ROUTE_SEO: Record<string, RouteSeo> = {
     description:
       'Convert HEIC and HEIF photos to JPG right in your browser with no uploads, no accounts, and no backend.',
     canonicalPath: '/convert-heic-to-jpg',
-    image: 'https://simplephototools.com/og-convert.svg',
+    image: 'https://simplephototools.com/og-convert.png',
     imageAlt: 'Convert HEIC to JPG landing page preview'
   },
   '/add-watermark-to-photo': {
