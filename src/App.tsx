@@ -19,6 +19,7 @@ type AppRoute =
   | '/convert'
   | '/crop'
   | '/rotate'
+  | '/rotate-image-online'
   | '/social'
   | '/metadata'
   | '/remove-photo-metadata'
@@ -156,6 +157,7 @@ function normalizeRoute(pathname: string): AppRoute {
     cleanPath === '/convert' ||
     cleanPath === '/crop' ||
     cleanPath === '/rotate' ||
+    cleanPath === '/rotate-image-online' ||
     cleanPath === '/social' ||
     cleanPath === '/metadata' ||
     cleanPath === '/remove-photo-metadata' ||
@@ -628,6 +630,22 @@ export default function App() {
             bulletC="Private in browser"
             ctaLabel="Open Crop Tool"
             ctaPath="/crop"
+            secondaryLabel="Go Home"
+            secondaryPath="/"
+            onNavigate={navigateTo}
+          />
+        );
+      case '/rotate-image-online':
+        return (
+          <LandingPage
+            eyebrow="Rotate Image Online"
+            title="Rotate or flip an image online without a full editor."
+            copy="Use simple 90° rotate and mirror controls, preview the result live, and save the final image right in your browser."
+            bulletA="Rotate left or right"
+            bulletB="Flip horizontal or vertical"
+            bulletC="Private in browser"
+            ctaLabel="Open Rotate / Flip"
+            ctaPath="/rotate"
             secondaryLabel="Go Home"
             secondaryPath="/"
             onNavigate={navigateTo}

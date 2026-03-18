@@ -67,6 +67,14 @@ export const ROUTE_SEO: Record<string, RouteSeo> = {
     image: 'https://simplephototools.com/og-crop.png',
     imageAlt: 'Crop Tool preview card'
   },
+  '/rotate': {
+    title: 'Rotate / Flip | Rotate or Flip Images in Your Browser',
+    description:
+      'Rotate or flip images in your browser with simple 90° controls, live preview, and private client-side export.',
+    canonicalPath: '/rotate',
+    image: 'https://simplephototools.com/og-home.png',
+    imageAlt: 'Rotate Flip tool preview card'
+  },
   '/metadata': {
     title: 'Remove Metadata | Strip Hidden Photo Details in Your Browser',
     description:
@@ -98,6 +106,14 @@ export const ROUTE_SEO: Record<string, RouteSeo> = {
     canonicalPath: '/crop-image-online',
     image: 'https://simplephototools.com/og-crop.png',
     imageAlt: 'Crop image online landing page preview'
+  },
+  '/rotate-image-online': {
+    title: 'Rotate Image Online | Free Browser-Based Rotate and Flip Tool',
+    description:
+      'Rotate an image online in your browser with simple 90° controls, horizontal or vertical flip options, and private export.',
+    canonicalPath: '/rotate-image-online',
+    image: 'https://simplephototools.com/og-home.png',
+    imageAlt: 'Rotate image online landing page preview'
   },
   '/convert-image-online': {
     title: 'Convert Image Online | Free Browser-Based Image Converter',

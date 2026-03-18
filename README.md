@@ -11,6 +11,7 @@ Current tools:
 - Photo Resizer
 - Image Compressor
 - Crop Tool
+- Rotate / Flip
 - Remove Metadata
 
 ## What it does
@@ -50,6 +51,12 @@ Current tools:
 - Preview the cropped result before saving
 - Export the selected crop locally in the browser
 
+### Rotate / Flip
+- Rotate images left or right in simple 90° steps
+- Flip images horizontally or vertically with a live preview
+- Reset back to the original orientation any time
+- Export the final result locally in the browser
+
 ### Remove Metadata
 - Review grouped metadata like file details, camera info, dates, and location when available
 - Create a cleaned copy that does not preserve the original metadata block
@@ -67,6 +74,7 @@ This project started as a watermarking app and is being expanded into a broader 
 - `/resize`
 - `/compress`
 - `/crop`
+- `/rotate`
 - `/metadata`
 
 Additional tools will be added over time.
