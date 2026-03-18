@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CollageMaker } from './components/collage/CollageMaker';
+import { ImageConverterTool } from './components/converter/ImageConverterTool';
 import { WatermarkTool } from './components/watermark/WatermarkTool';
 
 type AppRoute =
@@ -72,7 +73,7 @@ const TOOL_CARDS: ToolCard[] = [
     name: 'Image Converter',
     description: 'Convert between JPG, PNG, and WebP formats.',
     blurb: 'Helpful when you need a different image type.',
-    status: 'soon',
+    status: 'live',
     icon: 'convert'
   },
   {
@@ -292,6 +293,8 @@ function RouteIntro({
       ? 'Photo Watermarker'
       : route === '/collage'
         ? 'Collage Maker'
+        : route === '/convert'
+          ? 'Image Converter'
         : 'Coming Soon';
 
   return (
@@ -331,6 +334,13 @@ function RouteIntro({
           onClick={() => onNavigate('/collage')}
         >
           Collage Maker
+        </button>
+        <button
+          type="button"
+          className={`tool-switch-button ${route === '/convert' ? 'is-active' : ''}`}
+          onClick={() => onNavigate('/convert')}
+        >
+          Converter
         </button>
       </div>
     </section>
@@ -425,7 +435,7 @@ export default function App() {
       case '/compress':
         return <ComingSoonPage toolName="Image Compressor" onNavigate={navigateTo} />;
       case '/convert':
-        return <ComingSoonPage toolName="Image Converter" onNavigate={navigateTo} />;
+        return <ImageConverterTool />;
       case '/crop':
         return <ComingSoonPage toolName="Crop Tool" onNavigate={navigateTo} />;
       case '/rotate':
