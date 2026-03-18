@@ -426,20 +426,17 @@ export function CropTool() {
   }, [cropRect]);
 
   const cropDisplayStyle = useMemo(() => {
-    if (!cropRect || !previewSize || !imageAsset) {
+    if (!cropRect || !imageAsset) {
       return null;
     }
 
-    const scaleX = previewSize.width / imageAsset.width;
-    const scaleY = previewSize.height / imageAsset.height;
-
     return {
-      left: `${cropRect.x * scaleX}px`,
-      top: `${cropRect.y * scaleY}px`,
-      width: `${cropRect.width * scaleX}px`,
-      height: `${cropRect.height * scaleY}px`
+      left: `${(cropRect.x / imageAsset.width) * 100}%`,
+      top: `${(cropRect.y / imageAsset.height) * 100}%`,
+      width: `${(cropRect.width / imageAsset.width) * 100}%`,
+      height: `${(cropRect.height / imageAsset.height) * 100}%`
     };
-  }, [cropRect, previewSize, imageAsset]);
+  }, [cropRect, imageAsset]);
 
   const handleFileSelect = async (file: File) => {
     setIsBusy(true);
@@ -670,7 +667,11 @@ export function CropTool() {
                   <div
                     ref={overlayRef}
                     className="crop-preview-stage"
-                    style={{ width: previewSize.width, height: previewSize.height }}
+                    style={{
+                      width: '100%',
+                      maxWidth: `${previewSize.width}px`,
+                      aspectRatio: `${previewSize.width} / ${previewSize.height}`
+                    }}
                   >
                     <canvas ref={previewCanvasRef} className="preview-canvas" aria-label="Crop selection preview" />
                     <div

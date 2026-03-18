@@ -606,17 +606,23 @@ select:disabled {
 }
 
 .crop-preview-shell {
-  overflow: visible;
+  display: block;
+  width: 100%;
+  overflow: hidden;
 }
 
 .crop-preview-stage {
   position: relative;
+  max-width: 100%;
+  margin-inline: auto;
+  overflow: hidden;
   touch-action: none;
   user-select: none;
 }
 
 .crop-preview-stage .preview-canvas {
   display: block;
+  width: 100%;
 }
 
 .crop-selection {
@@ -690,26 +696,26 @@ select:disabled {
 }
 
 .crop-handle-nw {
-  top: -9px;
-  left: -9px;
+  top: 6px;
+  left: 6px;
   cursor: nwse-resize;
 }
 
 .crop-handle-ne {
-  top: -9px;
-  right: -9px;
+  top: 6px;
+  right: 6px;
   cursor: nesw-resize;
 }
 
 .crop-handle-sw {
-  bottom: -9px;
-  left: -9px;
+  bottom: 6px;
+  left: 6px;
   cursor: nesw-resize;
 }
 
 .crop-handle-se {
-  right: -9px;
-  bottom: -9px;
+  right: 6px;
+  bottom: 6px;
   cursor: nwse-resize;
 }
 
