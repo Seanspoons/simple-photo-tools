@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -7,6 +8,19 @@ export default defineConfig(() => {
 
   return {
     base,
+    build: {
+      rollupOptions: {
+        input: {
+          main: resolve(__dirname, 'index.html'),
+          watermarker: resolve(__dirname, 'watermarker/index.html'),
+          collage: resolve(__dirname, 'collage/index.html'),
+          convert: resolve(__dirname, 'convert/index.html'),
+          convertHeicToJpg: resolve(__dirname, 'convert-heic-to-jpg/index.html'),
+          addWatermarkToPhoto: resolve(__dirname, 'add-watermark-to-photo/index.html'),
+          makePhotoCollageOnline: resolve(__dirname, 'make-photo-collage-online/index.html')
+        }
+      }
+    },
     plugins: [
       react(),
       VitePWA({
