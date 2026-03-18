@@ -16,7 +16,7 @@ export const ROUTE_SEO: Record<string, RouteSeo> = {
     description:
       'Free browser-based photo tools for watermarking, collages, and image conversion, with no uploads, no accounts, and no backend.',
     canonicalPath: '/',
-    image: 'https://simplephototools.com/og-home.svg',
+    image: 'https://simplephototools.com/og-home.png',
     imageAlt: 'Simple Photo Tools homepage preview'
   },
   '/watermarker': {
@@ -24,7 +24,7 @@ export const ROUTE_SEO: Record<string, RouteSeo> = {
     description:
       'Add text, logo, or proof-style watermarks to photos right in your browser. Private, simple, and fully client-side.',
     canonicalPath: '/watermarker',
-    image: 'https://simplephototools.com/og-watermarker.svg',
+    image: 'https://simplephototools.com/og-watermarker.png',
     imageAlt: 'Photo Watermarker preview card'
   },
   '/collage': {
@@ -32,7 +32,7 @@ export const ROUTE_SEO: Record<string, RouteSeo> = {
     description:
       'Make clean photo collages in your browser with drag-to-arrange tiles, resize controls, and private client-side export.',
     canonicalPath: '/collage',
-    image: 'https://simplephototools.com/og-collage.svg',
+    image: 'https://simplephototools.com/og-collage.png',
     imageAlt: 'Collage Maker preview card'
   },
   '/convert': {
@@ -56,7 +56,7 @@ export const ROUTE_SEO: Record<string, RouteSeo> = {
     description:
       'Add a text, logo, or proof watermark to a photo online in your browser, with no uploads and no account required.',
     canonicalPath: '/add-watermark-to-photo',
-    image: 'https://simplephototools.com/og-watermarker.svg',
+    image: 'https://simplephototools.com/og-watermarker.png',
     imageAlt: 'Add watermark to photo landing page preview'
   },
   '/make-photo-collage-online': {
@@ -64,7 +64,7 @@ export const ROUTE_SEO: Record<string, RouteSeo> = {
     description:
       'Make a photo collage online in your browser with drag-to-arrange tiles, resize controls, and private local export.',
     canonicalPath: '/make-photo-collage-online',
-    image: 'https://simplephototools.com/og-collage.svg',
+    image: 'https://simplephototools.com/og-collage.png',
     imageAlt: 'Make photo collage online landing page preview'
   }
 };
@@ -85,7 +85,7 @@ export function applyRouteSeo(route: string) {
     title: DEFAULT_TITLE,
     description: DEFAULT_DESCRIPTION,
     canonicalPath: '/',
-    image: 'https://simplephototools.com/og-home.svg',
+    image: 'https://simplephototools.com/og-home.png',
     imageAlt: 'Simple Photo Tools homepage preview'
   };
   const url = `https://simplephototools.com${seo.canonicalPath}`;
