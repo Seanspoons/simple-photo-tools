@@ -8,11 +8,8 @@ Current tools:
 - Photo Watermarker
 - Collage Maker
 - Image Converter
-
-Planned next tools:
 - Photo Resizer
 - Image Compressor
-- Border Maker
 
 ## What it does
 
@@ -33,6 +30,18 @@ Planned next tools:
 - Adjust quality for JPEG and WebP exports
 - Fill transparent areas with a chosen background color when saving to JPEG
 
+### Photo Resizer
+- Set a new width and height with aspect ratio lock on by default
+- Preview the new dimensions before saving
+- Export the resized image locally in the browser
+- Send the resized result straight into the Image Compressor
+
+### Image Compressor
+- Make image files smaller with simple JPEG and WebP quality controls
+- Preview the expected file size change before saving
+- Handle transparent images cleanly when saving to JPEG
+- Export the compressed result locally in the browser
+
 ## Product direction
 
 This project started as a watermarking app and is being expanded into a broader suite of browser-based photo tools. The homepage now acts as a simple tool hub, with dedicated routes for each tool:
@@ -41,6 +50,8 @@ This project started as a watermarking app and is being expanded into a broader 
 - `/watermarker`
 - `/collage`
 - `/convert`
+- `/resize`
+- `/compress`
 
 Additional tools will be added over time.
 
