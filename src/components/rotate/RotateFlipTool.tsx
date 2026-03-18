@@ -116,6 +116,11 @@ function renderTransformedImage(
   width: number,
   height: number
 ) {
+  const rotatedDimensions = getRotatedDimensions(image.width, image.height, transform.rotation);
+  const scale = Math.min(width / rotatedDimensions.width, height / rotatedDimensions.height);
+  const drawWidth = Math.round(image.width * scale);
+  const drawHeight = Math.round(image.height * scale);
+
   canvas.width = width;
   canvas.height = height;
 
@@ -129,7 +134,7 @@ function renderTransformedImage(
   context.translate(width / 2, height / 2);
   context.rotate((transform.rotation * Math.PI) / 180);
   context.scale(transform.flipX ? -1 : 1, transform.flipY ? -1 : 1);
-  context.drawImage(image, -image.width / 2, -image.height / 2, image.width, image.height);
+  context.drawImage(image, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
   context.restore();
 }
 
