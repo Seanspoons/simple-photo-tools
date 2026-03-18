@@ -303,11 +303,11 @@ function RouteIntro({
   const isHome = route === '/';
   const [isToolMenuOpen, setIsToolMenuOpen] = useState(false);
   const activeLabel =
-    route === '/watermarker'
+    route === '/watermarker' || route === '/add-watermark-to-photo'
       ? 'Photo Watermarker'
-      : route === '/collage'
+      : route === '/collage' || route === '/make-photo-collage-online'
         ? 'Collage Maker'
-        : route === '/convert'
+        : route === '/convert' || route === '/convert-heic-to-jpg'
           ? 'Image Converter'
         : 'Coming Soon';
 
