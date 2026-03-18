@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CollageMaker } from './components/collage/CollageMaker';
 import { ImageConverterTool } from './components/converter/ImageConverterTool';
+import { PhotoResizerTool } from './components/resizer/PhotoResizerTool';
 import { applyRouteSeo } from './seo';
 import { WatermarkTool } from './components/watermark/WatermarkTool';
 
@@ -42,7 +43,8 @@ interface ToolCard {
 const LIVE_TOOL_LINKS: Array<{ path: AppRoute; label: string }> = [
   { path: '/watermarker', label: 'Watermarker' },
   { path: '/collage', label: 'Collage Maker' },
-  { path: '/convert', label: 'Image Converter' }
+  { path: '/convert', label: 'Image Converter' },
+  { path: '/resize', label: 'Photo Resizer' }
 ];
 
 const TOOL_CARDS: ToolCard[] = [
@@ -67,7 +69,7 @@ const TOOL_CARDS: ToolCard[] = [
     name: 'Photo Resizer',
     description: 'Resize photos for sharing and social posts.',
     blurb: 'Useful for Instagram, websites, and email.',
-    status: 'soon',
+    status: 'live',
     icon: 'resize'
   },
   {
@@ -309,6 +311,8 @@ function RouteIntro({
         ? 'Collage Maker'
         : route === '/convert' || route === '/convert-heic-to-jpg'
           ? 'Image Converter'
+          : route === '/resize'
+            ? 'Photo Resizer'
         : 'Coming Soon';
 
   return (
@@ -515,7 +519,7 @@ export default function App() {
       case '/collage':
         return <CollageMaker />;
       case '/resize':
-        return <ComingSoonPage toolName="Photo Resizer" onNavigate={navigateTo} />;
+        return <PhotoResizerTool />;
       case '/compress':
         return <ComingSoonPage toolName="Image Compressor" onNavigate={navigateTo} />;
       case '/convert':
