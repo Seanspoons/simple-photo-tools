@@ -108,6 +108,7 @@ export function WatermarkTool() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const exportCanvasRef = useRef<HTMLCanvasElement>(null);
+  const exportPreviewCanvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     setCanNativeShare('share' in navigator && 'canShare' in navigator);
@@ -223,6 +224,24 @@ export function WatermarkTool() {
       settings
     });
   }, [imageAsset, previewMode, settings, watermarkAsset]);
+
+  useEffect(() => {
+    if (!imageAsset || !exportPreviewCanvasRef.current) {
+      return;
+    }
+
+    const exportPreviewCanvas = exportPreviewCanvasRef.current;
+    const previewSize = getPreviewSize(imageAsset.width, imageAsset.height);
+
+    renderWatermarkedImage({
+      canvas: exportPreviewCanvas,
+      image: imageAsset.image,
+      watermarkImage: watermarkAsset?.image,
+      width: previewSize.width,
+      height: previewSize.height,
+      settings
+    });
+  }, [imageAsset, settings, watermarkAsset]);
 
   useEffect(() => {
     return () => {
@@ -544,6 +563,27 @@ export function WatermarkTool() {
               </div>
             </div>
 
+            {imageAsset ? (
+              <div className="export-preview-block">
+                <p className="helper-text export-preview-label">Preview</p>
+                <div className="preview-shell export-preview-shell">
+                  <canvas
+                    ref={exportPreviewCanvasRef}
+                    className="preview-canvas"
+                    aria-label="Final watermarked preview"
+                  />
+                </div>
+                <div className="tip-note panel-description panel-description-tight" role="note">
+                  <span className="tip-note-icon" aria-hidden="true">
+                    i
+                  </span>
+                  <p className="helper-text">
+                    This is the clean saved version without the compare toggle.
+                  </p>
+                </div>
+              </div>
+            ) : null}
+
             <div className="export-actions">
               <button
                 type="button"
@@ -571,13 +611,13 @@ export function WatermarkTool() {
                   Share / Save to Photos
                 </button>
               ) : null}
-                <button
-                  type="button"
-                  className="ghost-button"
-                  onClick={() => setConfirmAction('clear')}
-                  disabled={!imageAsset || isBusy}
-                >
-                  Start a New Watermark
+              <button
+                type="button"
+                className="ghost-button"
+                onClick={() => setConfirmAction('clear')}
+                disabled={!imageAsset || isBusy}
+              >
+                Start a New Watermark
               </button>
             </div>
 
