@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CollageMaker } from './components/collage/CollageMaker';
 import { ImageConverterTool } from './components/converter/ImageConverterTool';
+import { applyRouteSeo } from './seo';
 import { WatermarkTool } from './components/watermark/WatermarkTool';
 
 type AppRoute =
@@ -441,6 +442,10 @@ export default function App() {
     window.addEventListener('popstate', handleLocationChange);
     return () => window.removeEventListener('popstate', handleLocationChange);
   }, []);
+
+  useEffect(() => {
+    applyRouteSeo(route);
+  }, [route]);
 
   const routeContent = useMemo(() => {
     switch (route) {
