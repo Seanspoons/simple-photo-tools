@@ -138,7 +138,9 @@ function renderFormattedImage(
   fitMode: SocialFitMode,
   paddingPercent: number,
   backgroundColor: string,
-  fillBackground: boolean
+  fillBackground: boolean,
+  offsetX: number,
+  offsetY: number
 ) {
   canvas.width = preset.width;
   canvas.height = preset.height;
@@ -164,8 +166,10 @@ function renderFormattedImage(
 
   const drawWidth = image.width * scale;
   const drawHeight = image.height * scale;
-  const drawX = (preset.width - drawWidth) / 2;
-  const drawY = (preset.height - drawHeight) / 2;
+  const availableX = preset.width - drawWidth;
+  const availableY = preset.height - drawHeight;
+  const drawX = availableX / 2 + (availableX / 2) * (offsetX / 100);
+  const drawY = availableY / 2 + (availableY / 2) * (offsetY / 100);
 
   context.drawImage(image, drawX, drawY, drawWidth, drawHeight);
 }
@@ -176,6 +180,8 @@ export function SocialMediaFormatterTool() {
   const [fitMode, setFitMode] = useState<SocialFitMode>('fit');
   const [paddingPercent, setPaddingPercent] = useState(6);
   const [backgroundColor, setBackgroundColor] = useState('#ffffff');
+  const [offsetX, setOffsetX] = useState(0);
+  const [offsetY, setOffsetY] = useState(0);
   const [outputFormat, setOutputFormat] = useState<ExportFormat>('jpeg');
   const [useTransparentBackground, setUseTransparentBackground] = useState(false);
   const [hasTransparency, setHasTransparency] = useState(false);
@@ -221,6 +227,13 @@ export function SocialMediaFormatterTool() {
   }, [outputFormat]);
 
   const shouldFillBackground = outputFormat === 'jpeg' || !useTransparentBackground;
+  const willUpscale = useMemo(() => {
+    if (!imageAsset) {
+      return false;
+    }
+
+    return imageAsset.width < selectedPreset.width || imageAsset.height < selectedPreset.height;
+  }, [imageAsset, selectedPreset.height, selectedPreset.width]);
 
   useEffect(() => {
     if (!imageAsset || !previewCanvasRef.current) {
@@ -235,9 +248,11 @@ export function SocialMediaFormatterTool() {
       fitMode,
       paddingPercent,
       backgroundColor,
-      shouldFillBackground
+      shouldFillBackground,
+      offsetX,
+      offsetY
     );
-  }, [backgroundColor, fitMode, imageAsset, paddingPercent, selectedPreset, shouldFillBackground]);
+  }, [backgroundColor, fitMode, imageAsset, offsetX, offsetY, paddingPercent, selectedPreset, shouldFillBackground]);
 
   useEffect(() => {
     if (!imageAsset || !exportPreviewCanvasRef.current) {
@@ -252,9 +267,11 @@ export function SocialMediaFormatterTool() {
       fitMode,
       paddingPercent,
       backgroundColor,
-      shouldFillBackground
+      shouldFillBackground,
+      offsetX,
+      offsetY
     );
-  }, [backgroundColor, fitMode, imageAsset, paddingPercent, selectedPreset, shouldFillBackground]);
+  }, [backgroundColor, fitMode, imageAsset, offsetX, offsetY, paddingPercent, selectedPreset, shouldFillBackground]);
 
   const imageSummary = useMemo(() => {
     if (!imageAsset) {
@@ -280,6 +297,10 @@ export function SocialMediaFormatterTool() {
       const nextFormat = inferFormatterFormat(nextAsset);
       setOutputFormat(nextFormat);
       setUseTransparentBackground(nextFormat !== 'jpeg');
+      setOffsetX(0);
+      setOffsetY(0);
+      setPaddingPercent(6);
+      setFitMode('fit');
       setStatusMessage('Image ready to format.');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'The image could not be loaded.');
@@ -307,7 +328,9 @@ export function SocialMediaFormatterTool() {
         fitMode,
         paddingPercent,
         backgroundColor,
-        shouldFillBackground
+        shouldFillBackground,
+        offsetX,
+        offsetY
       );
 
       const blob = await exportCanvasToBlob(exportCanvasRef.current, outputFormat, 0.94);
@@ -343,7 +366,23 @@ export function SocialMediaFormatterTool() {
       }
       return null;
     });
+    setOffsetX(0);
+    setOffsetY(0);
+    setPaddingPercent(6);
+    setFitMode('fit');
     setStatusMessage('Ready for another image.');
+  };
+
+  const resetFormatting = () => {
+    setFitMode('fit');
+    setPaddingPercent(6);
+    setBackgroundColor('#ffffff');
+    setOffsetX(0);
+    setOffsetY(0);
+    if (outputFormat !== 'jpeg') {
+      setUseTransparentBackground(true);
+    }
+    setStatusMessage('Formatting reset.');
   };
 
   return (
@@ -496,6 +535,38 @@ export function SocialMediaFormatterTool() {
                 </label>
               ) : null}
 
+              <label className="field">
+                <span>Horizontal position</span>
+                <input
+                  type="range"
+                  min="-100"
+                  max="100"
+                  step="1"
+                  value={offsetX}
+                  onChange={(event) => setOffsetX(Number(event.target.value))}
+                  disabled={!imageAsset || isBusy}
+                />
+                <p className="helper-text">
+                  Left <strong>{offsetX}</strong> Right
+                </p>
+              </label>
+
+              <label className="field">
+                <span>Vertical position</span>
+                <input
+                  type="range"
+                  min="-100"
+                  max="100"
+                  step="1"
+                  value={offsetY}
+                  onChange={(event) => setOffsetY(Number(event.target.value))}
+                  disabled={!imageAsset || isBusy}
+                />
+                <p className="helper-text">
+                  Up <strong>{offsetY}</strong> Down
+                </p>
+              </label>
+
               <label className="field field-full">
                 <span>Background color</span>
                 <input
@@ -530,6 +601,16 @@ export function SocialMediaFormatterTool() {
                 <p className="helper-text">
                   {selectedPreset.width} × {selectedPreset.height}px
                 </p>
+              </div>
+              <div className="field field-full">
+                <button
+                  type="button"
+                  className="ghost-button"
+                  onClick={resetFormatting}
+                  disabled={!imageAsset || isBusy}
+                >
+                  Reset Formatting
+                </button>
               </div>
             </div>
           </section>
@@ -578,6 +659,16 @@ export function SocialMediaFormatterTool() {
                     The final image saves at the exact preset size you picked for {selectedPreset.platform}.
                   </p>
                 </div>
+                {willUpscale ? (
+                  <div className="tip-note panel-description panel-description-tight" role="note">
+                    <span className="tip-note-icon" aria-hidden="true">
+                      i
+                    </span>
+                    <p className="helper-text">
+                      This preset is larger than your original image, so the saved result will be upscaled.
+                    </p>
+                  </div>
+                ) : null}
                 {outputFormat === 'jpeg' && hasTransparency ? (
                   <div className="tip-note panel-description panel-description-tight" role="note">
                     <span className="tip-note-icon" aria-hidden="true">
