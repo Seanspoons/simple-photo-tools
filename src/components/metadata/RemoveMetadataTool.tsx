@@ -595,7 +595,7 @@ export function RemoveMetadataTool() {
                 </div>
               </div>
             ) : (
-              <p className="helper-text panel-description-tight">
+              <p className="helper-text panel-description">
                 Create a cleaned image to review what changed and download the new file.
               </p>
             )}
