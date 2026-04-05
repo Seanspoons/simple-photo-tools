@@ -239,6 +239,168 @@ export function CollageMaker() {
     setHistoryFuture([]);
   };
 
+  const anchorTilesToPackedLayout = (
+    currentTiles: CollageTile[],
+    packedTiles: Array<{ id: string; column: number; row: number }>
+  ) => {
+    const packedById = new Map(
+      packedTiles.map((tile) => [tile.id, { column: tile.column, row: tile.row }])
+    );
+
+    return currentTiles.map((tile) => {
+      const packed = packedById.get(tile.id);
+      return packed
+        ? {
+            ...tile,
+            gridColumn: packed.column,
+            gridRow: packed.row
+          }
+        : tile;
+    });
+  };
+
+  const findNearestOpenPlacement = (
+    tile: CollageTile,
+    placedTiles: CollageTile[],
+    preferredColumn: number,
+    preferredRow: number
+  ) => {
+    const maxColumn = Math.max(0, MAX_COLLAGE_COLUMNS - tile.colSpan);
+    const normalizedPreferredColumn = Math.max(0, Math.min(maxColumn, preferredColumn));
+    const normalizedPreferredRow = Math.max(0, preferredRow);
+    const maxOccupiedRow = placedTiles.reduce((maxRow, placedTile) => {
+      if (placedTile.gridRow === null) {
+        return maxRow;
+      }
+
+      return Math.max(maxRow, placedTile.gridRow + placedTile.rowSpan);
+    }, normalizedPreferredRow);
+    const maxSearchRow = Math.max(normalizedPreferredRow + 12, maxOccupiedRow + tile.rowSpan + 4);
+
+    const candidateColumns: number[] = [];
+    for (let offset = 0; offset <= MAX_COLLAGE_COLUMNS; offset += 1) {
+      const left = normalizedPreferredColumn - offset;
+      const right = normalizedPreferredColumn + offset;
+
+      if (left >= 0 && left <= maxColumn && !candidateColumns.includes(left)) {
+        candidateColumns.push(left);
+      }
+
+      if (right >= 0 && right <= maxColumn && !candidateColumns.includes(right)) {
+        candidateColumns.push(right);
+      }
+    }
+
+    const canFitPlacement = (column: number, row: number) =>
+      placedTiles.every((placedTile) => {
+        if (placedTile.gridColumn === null || placedTile.gridRow === null) {
+          return true;
+        }
+
+        return !tilesOverlap(
+          column,
+          row,
+          tile.colSpan,
+          tile.rowSpan,
+          placedTile.gridColumn,
+          placedTile.gridRow,
+          placedTile.colSpan,
+          placedTile.rowSpan
+        );
+      });
+
+    for (let rowOffset = 0; rowOffset <= maxSearchRow; rowOffset += 1) {
+      const candidateRows =
+        rowOffset === 0
+          ? [normalizedPreferredRow]
+          : [normalizedPreferredRow - rowOffset, normalizedPreferredRow + rowOffset].filter(
+              (row, index, rows) => row >= 0 && rows.indexOf(row) === index
+            );
+
+      for (const row of candidateRows) {
+        for (const column of candidateColumns) {
+          if (canFitPlacement(column, row)) {
+            return { column, row };
+          }
+        }
+      }
+    }
+
+    return { column: normalizedPreferredColumn, row: maxSearchRow };
+  };
+
+  const resolveLocalTileCollisions = (anchoredTiles: CollageTile[], primaryIndex: number) => {
+    const primaryTile = anchoredTiles[primaryIndex];
+    if (!primaryTile || primaryTile.gridColumn === null || primaryTile.gridRow === null) {
+      return anchoredTiles;
+    }
+    const primaryColumn = primaryTile.gridColumn;
+    const primaryRow = primaryTile.gridRow;
+
+    const impactedIndices = anchoredTiles
+      .map((tile, index) => ({ tile, index }))
+      .filter(({ tile, index }) => {
+        if (
+          index === primaryIndex ||
+          tile.gridColumn === null ||
+          tile.gridRow === null
+        ) {
+          return false;
+        }
+
+        return tilesOverlap(
+          primaryColumn,
+          primaryRow,
+          primaryTile.colSpan,
+          primaryTile.rowSpan,
+          tile.gridColumn,
+          tile.gridRow,
+          tile.colSpan,
+          tile.rowSpan
+        );
+      })
+      .sort((a, b) => {
+        const rowDelta = (a.tile.gridRow ?? 0) - (b.tile.gridRow ?? 0);
+        if (rowDelta !== 0) {
+          return rowDelta;
+        }
+
+        const columnDelta = (a.tile.gridColumn ?? 0) - (b.tile.gridColumn ?? 0);
+        if (columnDelta !== 0) {
+          return columnDelta;
+        }
+
+        return a.index - b.index;
+      })
+      .map(({ index }) => index);
+
+    if (impactedIndices.length === 0) {
+      return anchoredTiles;
+    }
+
+    const impactedIndexSet = new Set(impactedIndices);
+    const nextTiles = anchoredTiles.map((tile) => ({ ...tile }));
+    const placedTiles = nextTiles.filter(
+      (_tile, index) => index === primaryIndex || !impactedIndexSet.has(index)
+    );
+
+    impactedIndices.forEach((index) => {
+      const tile = nextTiles[index];
+      const placement = findNearestOpenPlacement(
+        tile,
+        placedTiles,
+        tile.gridColumn ?? 0,
+        tile.gridRow ?? 0
+      );
+
+      tile.gridColumn = placement.column;
+      tile.gridRow = placement.row;
+      placedTiles.push(tile);
+    });
+
+    return nextTiles;
+  };
+
   const canAreaFit = (
     occupiedCells: Set<string>,
     column: number,
@@ -283,9 +445,10 @@ export function CollageMaker() {
       return tiles;
     }
 
+    const anchoredTiles = anchorTilesToPackedLayout(tiles, currentPackedTiles);
     const currentPlacement = currentPackedTiles.find((tile) => tile.index === resizePreview.index);
     if (!currentPlacement) {
-      return tiles.map((tile, index) =>
+      return anchoredTiles.map((tile, index) =>
         index === resizePreview.index
           ? {
               ...tile,
@@ -386,7 +549,7 @@ export function CollageMaker() {
       workingRowSpan += 1;
     }
 
-    return tiles.map((tile, index) =>
+    const nextTiles = anchoredTiles.map((tile, index) =>
       index === resizePreview.index
         ? {
             ...tile,
@@ -397,6 +560,8 @@ export function CollageMaker() {
           }
         : tile
     );
+
+    return resolveLocalTileCollisions(nextTiles, resizePreview.index);
   }, [currentPackedTiles, resizePreview, tiles]);
   const packedPreviewTiles = useMemo(
     () =>
@@ -936,6 +1101,7 @@ export function CollageMaker() {
           }
         : tile
     );
+    const stabilizedTiles = resolveLocalTileCollisions(nextTiles, index);
     let nextSettings = settingsStateRef.current;
 
     if (settingsStateRef.current.shapePreset === 'square') {
@@ -946,7 +1112,7 @@ export function CollageMaker() {
         candidateColumns <= MAX_COLLAGE_COLUMNS;
         candidateColumns += 1
       ) {
-        const candidateMetrics = getCollageLayoutMetrics(nextTiles, {
+        const candidateMetrics = getCollageLayoutMetrics(stabilizedTiles, {
           ...settingsStateRef.current,
           columns: candidateColumns
         });
@@ -985,9 +1151,9 @@ export function CollageMaker() {
       setStatusMessage(`Tile resized to ${colSpan} × ${rowSpan}.`);
     }
 
-    pushHistoryEntry(nextTiles, nextSettings);
+    pushHistoryEntry(stabilizedTiles, nextSettings);
     setSettings(nextSettings);
-    setTiles(nextTiles);
+    setTiles(stabilizedTiles);
   };
 
   const handleResizePreview = (
@@ -1030,13 +1196,14 @@ export function CollageMaker() {
           }
         : tile
     );
+    const stabilizedTiles = resolveLocalTileCollisions(nextTiles, index);
     const nextSettings = {
       ...settingsStateRef.current,
       columns: Math.max(settingsStateRef.current.columns, nextColumns)
     };
-    pushHistoryEntry(nextTiles, nextSettings);
+    pushHistoryEntry(stabilizedTiles, nextSettings);
     setSettings(nextSettings);
-    setTiles(nextTiles);
+    setTiles(stabilizedTiles);
     setStatusMessage(
       hitMaxColumns
         ? `Tile resized to ${colSpan} × ${rowSpan}. Reached the max grid width of ${MAX_COLLAGE_COLUMNS} columns.`
@@ -1112,20 +1279,7 @@ export function CollageMaker() {
   };
 
   const anchorTilesToCurrentLayout = (currentTiles: CollageTile[]) => {
-    const packedById = new Map(
-      packedPreviewTiles.map((tile) => [tile.id, { column: tile.column, row: tile.row }])
-    );
-
-    return currentTiles.map((tile) => {
-      const packed = packedById.get(tile.id);
-      return packed
-        ? {
-            ...tile,
-            gridColumn: packed.column,
-            gridRow: packed.row
-          }
-        : tile;
-    });
+    return anchorTilesToPackedLayout(currentTiles, packedPreviewTiles);
   };
 
   const handleDragStart = (index: number) => {
@@ -1172,29 +1326,9 @@ export function CollageMaker() {
         };
       }
 
-      if (
-        tile.gridColumn !== null &&
-        tile.gridRow !== null &&
-        tilesOverlap(
-          nextColumn,
-          nextRow,
-          movingTile.colSpan,
-          movingTile.rowSpan,
-          tile.gridColumn,
-          tile.gridRow,
-          tile.colSpan,
-          tile.rowSpan
-        )
-      ) {
-        return {
-          ...tile,
-          gridColumn: null,
-          gridRow: null
-        };
-      }
-
       return tile;
     });
+    const stabilizedTiles = resolveLocalTileCollisions(nextTiles, index);
     const nextSettings = {
       ...settingsStateRef.current,
       columns: Math.max(
@@ -1202,8 +1336,8 @@ export function CollageMaker() {
         Math.min(MAX_COLLAGE_COLUMNS, nextColumn + movingTile.colSpan)
       )
     };
-    pushHistoryEntry(nextTiles, nextSettings);
-    setTiles(nextTiles);
+    pushHistoryEntry(stabilizedTiles, nextSettings);
+    setTiles(stabilizedTiles);
     setSettings(nextSettings);
     setSelectedImageIndex(index);
     setStatusMessage('Photo moved.');
