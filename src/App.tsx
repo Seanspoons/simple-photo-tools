@@ -721,7 +721,7 @@ function HomePage({ onNavigate }: { onNavigate: (path: AppRoute) => void }) {
               <p className="eyebrow">On The Roadmap</p>
               <h2>More photo tools are on the way.</h2>
               <p className="coming-soon-summary-copy">
-                We are keeping the main tool grid focused on what is ready today. These are the next tools planned for Simple Photo Tools.
+                A preview of the next tools planned for Simple Photo Tools.
               </p>
             </div>
             <div className="coming-soon-preview-grid">
