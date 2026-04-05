@@ -129,6 +129,7 @@ export function CollagePreview({
     index: number;
     pointerId: number;
   } | null>(null);
+  const isActivelyInteracting = effectiveDraggedIndex !== null || activeResizePreview !== null;
 
   useEffect(() => {
     if (!shellRef.current) {
@@ -168,6 +169,7 @@ export function CollagePreview({
     const scale = Math.min(scaleX, scaleY);
 
     return previewCells.map((cell) => ({
+      id: cell.id,
       index: cell.index,
       column: cell.column,
       row: cell.row,
@@ -920,7 +922,7 @@ export function CollagePreview({
                   ) : null}
                   {scaledCells.map((cell, index) => (
                     <div
-                      key={`${cell.x}-${cell.y}-${index}`}
+                      key={cell.id}
                       role="button"
                       aria-label={`Tile ${index + 1}`}
                       className={`preview-dropzone ${
@@ -935,7 +937,7 @@ export function CollagePreview({
                         activeResizePreview && activeResizePreview.index !== index
                           ? 'is-resize-background'
                           : ''
-                      }`}
+                      } ${isActivelyInteracting ? 'is-direct-manipulation' : ''}`}
                       style={{
                         left: `${cell.x}px`,
                         top: `${cell.y}px`,
