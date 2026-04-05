@@ -167,6 +167,9 @@ const TOOL_CARDS: ToolCard[] = [
   }
 ];
 
+const LIVE_TOOL_CARDS = TOOL_CARDS.filter((tool) => tool.status === 'live');
+const COMING_SOON_TOOL_CARDS = TOOL_CARDS.filter((tool) => tool.status === 'soon');
+
 function normalizeRoute(pathname: string): AppRoute {
   const cleanPath = pathname.replace(/\/+$/, '') || '/';
   if (cleanPath === '/watermarker' || cleanPath === '/collage') {
@@ -684,28 +687,58 @@ function RouteIntro({
 
 function HomePage({ onNavigate }: { onNavigate: (path: AppRoute) => void }) {
   return (
-    <section className="suite-grid">
-      {TOOL_CARDS.map((tool) => (
-        <article key={tool.path} className="panel suite-card">
-          <div className="suite-card-header">
-            <div className="suite-card-title">
-              <ToolIcon kind={tool.icon} />
-              <h2>{tool.name}</h2>
+    <>
+      <section className="suite-grid">
+        {LIVE_TOOL_CARDS.map((tool) => (
+          <article key={tool.path} className="panel suite-card">
+            <div className="suite-card-header">
+              <div className="suite-card-title">
+                <ToolIcon kind={tool.icon} />
+                <h2>{tool.name}</h2>
+              </div>
             </div>
-            {tool.status === 'soon' ? <span className="suite-status-note">Coming soon</span> : null}
+            <p className="suite-card-copy">{tool.description}</p>
+            <p className="suite-card-blurb">{tool.blurb}</p>
+            <button
+              type="button"
+              className="primary-button"
+              onClick={() => onNavigate(tool.path)}
+            >
+              Open tool
+            </button>
+          </article>
+        ))}
+      </section>
+
+      {COMING_SOON_TOOL_CARDS.length > 0 ? (
+        <details className="panel coming-soon-summary">
+          <summary className="coming-soon-summary-toggle">
+            <span className="coming-soon-summary-label">Planned tools</span>
+            <span className="coming-soon-summary-hint">See what is next</span>
+          </summary>
+          <div className="coming-soon-summary-body">
+            <div className="coming-soon-summary-header">
+              <p className="eyebrow">On The Roadmap</p>
+              <h2>More photo tools are on the way.</h2>
+              <p className="coming-soon-summary-copy">
+                We are keeping the main tool grid focused on what is ready today. These are the next tools planned for Simple Photo Tools.
+              </p>
+            </div>
+            <div className="coming-soon-preview-grid">
+              {COMING_SOON_TOOL_CARDS.map((tool) => (
+                <article key={tool.path} className="coming-soon-preview-card">
+                  <ToolIcon kind={tool.icon} />
+                  <div className="coming-soon-preview-copy">
+                    <h3>{tool.name}</h3>
+                    <p>{tool.description}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
           </div>
-          <p className="suite-card-copy">{tool.description}</p>
-          <p className="suite-card-blurb">{tool.blurb}</p>
-          <button
-            type="button"
-            className={tool.status === 'live' ? 'primary-button' : 'secondary-button'}
-            onClick={() => onNavigate(tool.path)}
-          >
-            {tool.status === 'live' ? 'Open tool' : 'Coming soon'}
-          </button>
-        </article>
-      ))}
-    </section>
+        </details>
+      ) : null}
+    </>
   );
 }
 
