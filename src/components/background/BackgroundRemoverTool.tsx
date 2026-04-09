@@ -3,9 +3,17 @@ import { ConfirmModal } from '../ConfirmModal';
 import { FloatingMessage } from '../FloatingMessage';
 import { UploadPanel } from '../UploadPanel';
 import { loadImageAsset } from '../../utils/imageLoader';
+import { preloadBackgroundRemoval, removeImageBackground } from '../../utils/backgroundRemoval';
 import { ImageAsset } from '../../types';
 
 type BackgroundRemoverConfirmAction = 'clear' | null;
+type BackgroundPreviewMode = 'before' | 'after';
+type ModelStatus = 'loading' | 'ready' | 'error';
+
+interface LoadedBlobImage {
+  image: HTMLImageElement;
+  objectUrl: string;
+}
 
 function getPreviewSize(width: number, height: number): { width: number; height: number } {
   const maxWidth = 960;
@@ -30,15 +38,98 @@ function renderPreview(canvas: HTMLCanvasElement, image: HTMLImageElement, width
   context.drawImage(image, 0, 0, width, height);
 }
 
+function formatModelAssetLabel(key: string): string {
+  if (key.includes('model')) {
+    return 'Downloading model';
+  }
+
+  if (key.includes('wasm')) {
+    return 'Preparing runtime';
+  }
+
+  if (key.includes('worker')) {
+    return 'Starting worker';
+  }
+
+  return 'Preparing model';
+}
+
+function loadBlobImage(blob: Blob): Promise<LoadedBlobImage> {
+  const objectUrl = URL.createObjectURL(blob);
+
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve({ image, objectUrl });
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('The cutout preview could not be prepared.'));
+    };
+    image.src = objectUrl;
+  });
+}
+
 export function BackgroundRemoverTool() {
   const [imageAsset, setImageAsset] = useState<ImageAsset | null>(null);
+  const [resultBlob, setResultBlob] = useState<Blob | null>(null);
+  const [resultPreview, setResultPreview] = useState<LoadedBlobImage | null>(null);
+  const [previewMode, setPreviewMode] = useState<BackgroundPreviewMode>('after');
+  const [modelStatus, setModelStatus] = useState<ModelStatus>('loading');
+  const [modelStage, setModelStage] = useState('Preparing model in your browser...');
+  const [modelProgress, setModelProgress] = useState<number | null>(null);
   const [isBusy, setIsBusy] = useState(false);
   const [confirmAction, setConfirmAction] = useState<BackgroundRemoverConfirmAction>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [statusMessage, setStatusMessage] = useState<string | null>(
-    'Background remover is ready for upload.'
-  );
+  const [statusMessage, setStatusMessage] = useState<string | null>('Loading background remover...');
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function prepareModel() {
+      try {
+        setModelStatus('loading');
+        setModelStage('Preparing model in your browser...');
+        setModelProgress(null);
+        await preloadBackgroundRemoval((key, current, total) => {
+          if (isCancelled) {
+            return;
+          }
+
+          setModelStage(`${formatModelAssetLabel(key)}...`);
+          setModelProgress(total > 0 ? current / total : null);
+        });
+
+        if (isCancelled) {
+          return;
+        }
+
+        setModelStatus('ready');
+        setModelStage('Model ready in your browser.');
+        setModelProgress(1);
+        setStatusMessage('Background remover is ready.');
+      } catch (error) {
+        if (isCancelled) {
+          return;
+        }
+
+        setModelStatus('error');
+        setModelStage('The background remover could not load.');
+        setModelProgress(null);
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : 'The background remover could not load in this browser.'
+        );
+        setStatusMessage(null);
+      }
+    }
+
+    void prepareModel();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -49,18 +140,22 @@ export function BackgroundRemoverTool() {
   }, [imageAsset]);
 
   useEffect(() => {
-    if (!imageAsset || !previewCanvasRef.current) {
+    return () => {
+      if (resultPreview?.objectUrl) {
+        URL.revokeObjectURL(resultPreview.objectUrl);
+      }
+    };
+  }, [resultPreview]);
+
+  useEffect(() => {
+    const activeImage = previewMode === 'before' ? imageAsset?.image ?? null : resultPreview?.image ?? null;
+    if (!activeImage || !previewCanvasRef.current) {
       return;
     }
 
-    const previewSize = getPreviewSize(imageAsset.width, imageAsset.height);
-    renderPreview(
-      previewCanvasRef.current,
-      imageAsset.image,
-      previewSize.width,
-      previewSize.height
-    );
-  }, [imageAsset]);
+    const previewSize = getPreviewSize(activeImage.naturalWidth, activeImage.naturalHeight);
+    renderPreview(previewCanvasRef.current, activeImage, previewSize.width, previewSize.height);
+  }, [imageAsset, previewMode, resultPreview]);
 
   const imageSummary = useMemo(() => {
     if (!imageAsset) {
@@ -69,6 +164,8 @@ export function BackgroundRemoverTool() {
 
     return `${imageAsset.name} • ${imageAsset.width} × ${imageAsset.height}px`;
   }, [imageAsset]);
+
+  const canRunRemoval = imageAsset !== null && modelStatus === 'ready' && !isBusy;
 
   const handleFileSelect = async (file: File) => {
     setIsBusy(true);
@@ -84,10 +181,62 @@ export function BackgroundRemoverTool() {
 
         return nextAsset;
       });
-      setStatusMessage('Image ready. Background removal will be added next.');
+      setResultBlob(null);
+      setResultPreview((current) => {
+        if (current?.objectUrl) {
+          URL.revokeObjectURL(current.objectUrl);
+        }
+
+        return null;
+      });
+      setPreviewMode('before');
+      setStatusMessage(
+        modelStatus === 'ready'
+          ? 'Image ready. Remove the background when you are ready.'
+          : 'Image ready. The model is still preparing in your browser.'
+      );
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'The image could not be loaded.');
       setStatusMessage(null);
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const handleRemoveBackground = async () => {
+    if (!imageAsset) {
+      setErrorMessage('Choose a photo before removing the background.');
+      return;
+    }
+
+    setIsBusy(true);
+    setErrorMessage(null);
+    setStatusMessage('Removing background...');
+
+    try {
+      const nextBlob = await removeImageBackground(imageAsset.file, (key, current, total) => {
+        setModelStage(`${formatModelAssetLabel(key)}...`);
+        setModelProgress(total > 0 ? current / total : null);
+      });
+      const nextPreview = await loadBlobImage(nextBlob);
+
+      setResultPreview((current) => {
+        if (current?.objectUrl) {
+          URL.revokeObjectURL(current.objectUrl);
+        }
+
+        return nextPreview;
+      });
+      setResultBlob(nextBlob);
+      setPreviewMode('after');
+      setStatusMessage('Background removed. Review the transparent cutout.');
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : 'The background could not be removed from this image.'
+      );
+      setStatusMessage('Your original photo is still ready to try again.');
     } finally {
       setIsBusy(false);
     }
@@ -102,6 +251,15 @@ export function BackgroundRemoverTool() {
 
       return null;
     });
+    setResultPreview((current) => {
+      if (current?.objectUrl) {
+        URL.revokeObjectURL(current.objectUrl);
+      }
+
+      return null;
+    });
+    setResultBlob(null);
+    setPreviewMode('after');
     setStatusMessage('Ready for another image.');
   };
 
@@ -131,8 +289,8 @@ export function BackgroundRemoverTool() {
               i
             </span>
             <p className="helper-text">
-              Start with one photo. The model and full cutout workflow will load right in your
-              browser.
+              Start with one photo. The model runs entirely in your browser and keeps your image on
+              your device.
             </p>
           </div>
         </div>
@@ -172,13 +330,53 @@ export function BackgroundRemoverTool() {
                 <h2>Remove the background</h2>
               </div>
               <span className="dimension-badge">
-                {imageAsset ? 'Coming next' : 'Waiting for photo'}
+                {modelStatus === 'ready'
+                  ? 'Model ready'
+                  : modelStatus === 'error'
+                    ? 'Load failed'
+                    : 'Preparing model'}
               </span>
             </div>
             <p className="panel-description">
-              The in-browser model pipeline, loading states, and cutout controls will be wired in
-              next. This scaffold keeps the tool aligned with the existing suite layout first.
+              {modelStatus === 'ready'
+                ? 'The background remover is ready in your browser. Run it when your photo is in place.'
+                : 'The first run downloads the model into your browser cache. It usually takes longer once, then gets faster.'}
             </p>
+
+            {modelStatus !== 'ready' ? (
+              <div className="background-remover-stage-card" aria-live="polite">
+                <p className="background-remover-stage-title">{modelStage}</p>
+                <div className="background-remover-loading-bars" aria-hidden="true">
+                  <span className="background-remover-loading-bar" />
+                  <span className="background-remover-loading-bar is-delay-1" />
+                  <span className="background-remover-loading-bar is-delay-2" />
+                </div>
+                <p className="helper-text">
+                  {modelProgress !== null
+                    ? `${Math.round(modelProgress * 100)}% ready`
+                    : 'Preparing browser runtime and model files'}
+                </p>
+              </div>
+            ) : null}
+
+            <div className="export-action-row">
+              <button
+                type="button"
+                className="primary-button"
+                onClick={handleRemoveBackground}
+                disabled={!canRunRemoval}
+              >
+                {isBusy ? 'Removing Background...' : 'Remove Background'}
+              </button>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => setConfirmAction('clear')}
+                disabled={!imageAsset || isBusy}
+              >
+                Choose Another Photo
+              </button>
+            </div>
           </section>
         </div>
 
@@ -196,9 +394,40 @@ export function BackgroundRemoverTool() {
               ) : null}
             </div>
 
+            <div className="preview-compare-bar" aria-label="Preview comparison">
+              <span className="preview-compare-label">View</span>
+              <div className="preview-compare-toggle" role="tablist" aria-label="Preview comparison">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={previewMode === 'after'}
+                  className={`preview-compare-button ${previewMode === 'after' ? 'is-active' : ''}`}
+                  onClick={() => setPreviewMode('after')}
+                  disabled={!resultBlob}
+                >
+                  Cutout
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={previewMode === 'before'}
+                  className={`preview-compare-button ${previewMode === 'before' ? 'is-active' : ''}`}
+                  onClick={() => setPreviewMode('before')}
+                  disabled={!imageAsset}
+                >
+                  Original
+                </button>
+              </div>
+            </div>
+
             <div className="preview-shell background-remover-preview-shell">
               {imageAsset ? (
                 <div className="background-remover-preview-frame">
+                  {isBusy && previewMode === 'after' ? (
+                    <div className="background-remover-overlay-note">
+                      <p>Processing cutout...</p>
+                    </div>
+                  ) : null}
                   <canvas
                     ref={previewCanvasRef}
                     className="preview-canvas"
@@ -221,14 +450,19 @@ export function BackgroundRemoverTool() {
               </div>
             </div>
             <p className="panel-description panel-description-tight">
-              Transparent PNG export and background fill options will be added with the processing
-              pipeline.
+              Transparent PNG export is the next step. This phase focuses on the in-browser model
+              pipeline and live cutout preview.
             </p>
             <div className="export-action-row">
               <button type="button" className="primary-button" disabled>
                 Download PNG
               </button>
-              <button type="button" className="secondary-button" disabled>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => setConfirmAction('clear')}
+                disabled={!imageAsset || isBusy}
+              >
                 Choose Another Photo
               </button>
             </div>

@@ -1251,6 +1251,63 @@ select:disabled {
   background-position: 0 0, 0 12px, 12px -12px, -12px 0;
 }
 
+.background-remover-stage-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: #faf8f3;
+}
+
+.background-remover-stage-title {
+  margin: 0;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.background-remover-loading-bars {
+  display: grid;
+  gap: 8px;
+}
+
+.background-remover-loading-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(217, 162, 77, 0.18), rgba(217, 162, 77, 0.5), rgba(217, 162, 77, 0.18));
+  background-size: 220% 100%;
+  animation: shimmer-slide 1.2s linear infinite;
+}
+
+.background-remover-loading-bar.is-delay-1 {
+  animation-delay: 120ms;
+}
+
+.background-remover-loading-bar.is-delay-2 {
+  animation-delay: 240ms;
+}
+
+.background-remover-overlay-note {
+  position: absolute;
+  inset: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: rgba(255, 253, 248, 0.78);
+  color: var(--accent);
+  font-weight: 700;
+  z-index: 1;
+}
+
+@keyframes shimmer-slide {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
 .preview-placeholder {
   min-height: 300px;
   display: grid;
