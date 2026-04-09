@@ -4,7 +4,11 @@ import { FloatingMessage } from '../FloatingMessage';
 import { UploadPanel } from '../UploadPanel';
 import { exportCanvasToBlob, triggerDownload } from '../../utils/exportImage';
 import { loadImageAsset } from '../../utils/imageLoader';
-import { preloadBackgroundRemoval, removeImageBackground } from '../../utils/backgroundRemoval';
+import { preloadBackgroundRemoval } from '../../utils/backgroundRemoval';
+import {
+  BackgroundRemovalMode,
+  processBackgroundRemoval
+} from '../../utils/backgroundRemovalQuality';
 import { ImageAsset } from '../../types';
 
 type BackgroundRemoverConfirmAction = 'clear' | null;
@@ -88,6 +92,7 @@ export function BackgroundRemoverTool() {
   const [resultBlob, setResultBlob] = useState<Blob | null>(null);
   const [resultPreview, setResultPreview] = useState<LoadedBlobImage | null>(null);
   const [previewMode, setPreviewMode] = useState<BackgroundPreviewMode>('after');
+  const [removalMode, setRemovalMode] = useState<BackgroundRemovalMode>('photo');
   const [backgroundFillMode, setBackgroundFillMode] = useState<BackgroundFillMode>('transparent');
   const [backgroundColor, setBackgroundColor] = useState('#ffffff');
   const [modelStatus, setModelStatus] = useState<ModelStatus>('loading');
@@ -190,6 +195,14 @@ export function BackgroundRemoverTool() {
 
     return `${imageAsset.name} • ${imageAsset.width} × ${imageAsset.height}px`;
   }, [imageAsset]);
+  const refinementSettings = useMemo(
+    () => ({
+      edgeSoftness: removalMode === 'photo' ? 0.45 : 0.08,
+      edgeCleanup: removalMode === 'photo' ? 0.35 : 0.75,
+      thresholdBias: removalMode === 'photo' ? 0 : 0.18
+    }),
+    [removalMode]
+  );
   const imageMegapixels = imageAsset ? (imageAsset.width * imageAsset.height) / 1000000 : 0;
   const mayTakeLonger = imageMegapixels >= 12;
 
@@ -218,6 +231,7 @@ export function BackgroundRemoverTool() {
         return null;
       });
       setPreviewMode('before');
+      setRemovalMode('photo');
       setBackgroundFillMode('transparent');
       setBackgroundColor('#ffffff');
       setStatusMessage(
@@ -244,10 +258,15 @@ export function BackgroundRemoverTool() {
     setStatusMessage('Removing background...');
 
     try {
-      const nextBlob = await removeImageBackground(imageAsset.file, (key, current, total) => {
+      const { blob: nextBlob } = await processBackgroundRemoval(
+        imageAsset.file,
+        removalMode,
+        refinementSettings,
+        (key, current, total) => {
         setModelStage(`${formatModelAssetLabel(key)}...`);
         setModelProgress(total > 0 ? current / total : null);
-      });
+        }
+      );
       const nextPreview = await loadBlobImage(nextBlob);
 
       setResultPreview((current) => {
@@ -259,7 +278,11 @@ export function BackgroundRemoverTool() {
       });
       setResultBlob(nextBlob);
       setPreviewMode('after');
-      setStatusMessage('Background removed. Review the transparent cutout.');
+      setStatusMessage(
+        removalMode === 'photo'
+          ? 'Background removed in Photo mode. Review the transparent cutout.'
+          : 'Background removed in Logo / Graphic mode. Review the transparent cutout.'
+      );
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -423,6 +446,39 @@ export function BackgroundRemoverTool() {
                 ? 'The background remover is ready in your browser. Run it when your photo is in place.'
                 : 'The first run downloads the model into your browser cache. It usually takes longer once, then gets faster.'}
             </p>
+
+            <div className="controls-grid background-remover-mode-grid">
+              <div className="field field-full">
+                <span>Mode</span>
+                <div className="segmented-control" role="tablist" aria-label="Background removal mode">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={removalMode === 'photo'}
+                    className={`segmented-control-button ${removalMode === 'photo' ? 'is-active' : ''}`}
+                    onClick={() => setRemovalMode('photo')}
+                    disabled={isBusy}
+                  >
+                    Photo
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={removalMode === 'graphic'}
+                    className={`segmented-control-button ${removalMode === 'graphic' ? 'is-active' : ''}`}
+                    onClick={() => setRemovalMode('graphic')}
+                    disabled={isBusy}
+                  >
+                    Logo / Graphic
+                  </button>
+                </div>
+                <p className="helper-text">
+                  {removalMode === 'photo'
+                    ? 'Photo mode works best for people, products, and everyday images.'
+                    : 'Logo / Graphic mode is better for logos, screenshots, and clean flat designs.'}
+                </p>
+              </div>
+            </div>
 
               {modelStatus !== 'ready' ? (
               <div className="background-remover-stage-card" aria-live="polite">

@@ -2174,6 +2174,14 @@ select:disabled {
   margin-bottom: 16px;
 }
 
+.background-remover-mode-grid {
+  margin-bottom: 16px;
+}
+
+.background-remover-mode-grid .segmented-control {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .primary-button,
 .secondary-button,
 .ghost-button {
