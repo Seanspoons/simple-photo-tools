@@ -1988,6 +1988,31 @@ select:disabled {
   padding: 0 14px;
 }
 
+.segmented-control {
+  display: inline-grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  padding: 6px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #f7f5ef;
+}
+
+.segmented-control-button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-soft);
+  font-weight: 700;
+}
+
+.segmented-control-button.is-active {
+  background: #ffffff;
+  color: var(--accent);
+  box-shadow: var(--shadow);
+}
+
 .preset-panel {
   padding-bottom: 6px;
   border-bottom: 1px solid var(--border);
@@ -2105,6 +2130,16 @@ select:disabled {
 .export-actions {
   display: grid;
   gap: 12px;
+}
+
+.export-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.background-remover-export-grid {
+  margin-bottom: 16px;
 }
 
 .primary-button,

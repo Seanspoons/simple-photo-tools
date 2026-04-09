@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ConfirmModal } from '../ConfirmModal';
 import { FloatingMessage } from '../FloatingMessage';
 import { UploadPanel } from '../UploadPanel';
+import { exportCanvasToBlob, triggerDownload } from '../../utils/exportImage';
 import { loadImageAsset } from '../../utils/imageLoader';
 import { preloadBackgroundRemoval, removeImageBackground } from '../../utils/backgroundRemoval';
 import { ImageAsset } from '../../types';
@@ -9,6 +10,7 @@ import { ImageAsset } from '../../types';
 type BackgroundRemoverConfirmAction = 'clear' | null;
 type BackgroundPreviewMode = 'before' | 'after';
 type ModelStatus = 'loading' | 'ready' | 'error';
+type BackgroundFillMode = 'transparent' | 'white' | 'color';
 
 interface LoadedBlobImage {
   image: HTMLImageElement;
@@ -25,7 +27,14 @@ function getPreviewSize(width: number, height: number): { width: number; height:
   };
 }
 
-function renderPreview(canvas: HTMLCanvasElement, image: HTMLImageElement, width: number, height: number) {
+function renderImageWithBackground(
+  canvas: HTMLCanvasElement,
+  image: HTMLImageElement,
+  width: number,
+  height: number,
+  fillMode: BackgroundFillMode,
+  fillColor: string
+) {
   canvas.width = width;
   canvas.height = height;
 
@@ -35,6 +44,12 @@ function renderPreview(canvas: HTMLCanvasElement, image: HTMLImageElement, width
   }
 
   context.clearRect(0, 0, width, height);
+
+  if (fillMode === 'white' || fillMode === 'color') {
+    context.fillStyle = fillMode === 'white' ? '#ffffff' : fillColor;
+    context.fillRect(0, 0, width, height);
+  }
+
   context.drawImage(image, 0, 0, width, height);
 }
 
@@ -73,6 +88,8 @@ export function BackgroundRemoverTool() {
   const [resultBlob, setResultBlob] = useState<Blob | null>(null);
   const [resultPreview, setResultPreview] = useState<LoadedBlobImage | null>(null);
   const [previewMode, setPreviewMode] = useState<BackgroundPreviewMode>('after');
+  const [backgroundFillMode, setBackgroundFillMode] = useState<BackgroundFillMode>('transparent');
+  const [backgroundColor, setBackgroundColor] = useState('#ffffff');
   const [modelStatus, setModelStatus] = useState<ModelStatus>('loading');
   const [modelStage, setModelStage] = useState('Preparing model in your browser...');
   const [modelProgress, setModelProgress] = useState<number | null>(null);
@@ -81,6 +98,7 @@ export function BackgroundRemoverTool() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>('Loading background remover...');
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
+  const exportCanvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     let isCancelled = false;
@@ -154,8 +172,15 @@ export function BackgroundRemoverTool() {
     }
 
     const previewSize = getPreviewSize(activeImage.naturalWidth, activeImage.naturalHeight);
-    renderPreview(previewCanvasRef.current, activeImage, previewSize.width, previewSize.height);
-  }, [imageAsset, previewMode, resultPreview]);
+    renderImageWithBackground(
+      previewCanvasRef.current,
+      activeImage,
+      previewSize.width,
+      previewSize.height,
+      previewMode === 'after' ? backgroundFillMode : 'transparent',
+      backgroundColor
+    );
+  }, [backgroundColor, backgroundFillMode, imageAsset, previewMode, resultPreview]);
 
   const imageSummary = useMemo(() => {
     if (!imageAsset) {
@@ -190,6 +215,8 @@ export function BackgroundRemoverTool() {
         return null;
       });
       setPreviewMode('before');
+      setBackgroundFillMode('transparent');
+      setBackgroundColor('#ffffff');
       setStatusMessage(
         modelStatus === 'ready'
           ? 'Image ready. Remove the background when you are ready.'
@@ -260,7 +287,58 @@ export function BackgroundRemoverTool() {
     });
     setResultBlob(null);
     setPreviewMode('after');
+    setBackgroundFillMode('transparent');
+    setBackgroundColor('#ffffff');
     setStatusMessage('Ready for another image.');
+  };
+
+  const handleDownload = async () => {
+    if (!resultBlob || !resultPreview) {
+      setErrorMessage('Remove the background before downloading the result.');
+      return;
+    }
+
+    setIsBusy(true);
+    setErrorMessage(null);
+    setStatusMessage('Preparing download...');
+
+    try {
+      let blob = resultBlob;
+
+      if (backgroundFillMode !== 'transparent') {
+        if (!exportCanvasRef.current) {
+          throw new Error('The browser could not prepare the export.');
+        }
+
+        renderImageWithBackground(
+          exportCanvasRef.current,
+          resultPreview.image,
+          resultPreview.image.naturalWidth,
+          resultPreview.image.naturalHeight,
+          backgroundFillMode,
+          backgroundColor
+        );
+        blob = await exportCanvasToBlob(exportCanvasRef.current, 'png', 1);
+      }
+
+      const filenameBase = imageAsset?.name.replace(/\.[^.]+$/, '') || 'photo';
+      const suffix =
+        backgroundFillMode === 'transparent'
+          ? 'no-background'
+          : backgroundFillMode === 'white'
+            ? 'white-background'
+            : 'custom-background';
+      const filename = `${filenameBase}-${suffix}.png`;
+      triggerDownload(blob, filename);
+      setStatusMessage(`Saved ${filename}.`);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : 'The result could not be downloaded.'
+      );
+      setStatusMessage(null);
+    } finally {
+      setIsBusy(false);
+    }
   };
 
   return (
@@ -449,12 +527,71 @@ export function BackgroundRemoverTool() {
                 <h2>Download</h2>
               </div>
             </div>
-            <p className="panel-description panel-description-tight">
-              Transparent PNG export is the next step. This phase focuses on the in-browser model
-              pipeline and live cutout preview.
+            <p className="panel-description">
+              Download a transparent PNG, or place the cutout on a simple solid background first.
             </p>
+            <div className="controls-grid background-remover-export-grid">
+              <div className="field field-full">
+                <span>Background</span>
+                <div className="segmented-control" role="tablist" aria-label="Background fill options">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={backgroundFillMode === 'transparent'}
+                    className={`segmented-control-button ${
+                      backgroundFillMode === 'transparent' ? 'is-active' : ''
+                    }`}
+                    onClick={() => setBackgroundFillMode('transparent')}
+                    disabled={!resultBlob || isBusy}
+                  >
+                    Transparent
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={backgroundFillMode === 'white'}
+                    className={`segmented-control-button ${
+                      backgroundFillMode === 'white' ? 'is-active' : ''
+                    }`}
+                    onClick={() => setBackgroundFillMode('white')}
+                    disabled={!resultBlob || isBusy}
+                  >
+                    White
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={backgroundFillMode === 'color'}
+                    className={`segmented-control-button ${
+                      backgroundFillMode === 'color' ? 'is-active' : ''
+                    }`}
+                    onClick={() => setBackgroundFillMode('color')}
+                    disabled={!resultBlob || isBusy}
+                  >
+                    Color
+                  </button>
+                </div>
+              </div>
+
+              {backgroundFillMode === 'color' ? (
+                <label className="field">
+                  <span>Background color</span>
+                  <input
+                    type="color"
+                    value={backgroundColor}
+                    onChange={(event) => setBackgroundColor(event.target.value)}
+                    disabled={!resultBlob || isBusy}
+                  />
+                </label>
+              ) : null}
+            </div>
             <div className="export-action-row">
-              <button type="button" className="primary-button" disabled>
+              <button
+                type="button"
+                className="primary-button"
+                onClick={handleDownload}
+                disabled={!resultBlob || isBusy}
+              >
                 Download PNG
               </button>
               <button
@@ -466,6 +603,7 @@ export function BackgroundRemoverTool() {
                 Choose Another Photo
               </button>
             </div>
+            <canvas ref={exportCanvasRef} className="preview-canvas is-hidden" aria-hidden="true" />
           </section>
         </div>
       </section>
