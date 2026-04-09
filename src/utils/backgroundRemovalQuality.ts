@@ -57,6 +57,16 @@ function extractImageData(image: HTMLImageElement) {
   return context.getImageData(0, 0, canvas.width, canvas.height);
 }
 
+function extractAlphaFromImageData(imageData: ImageData) {
+  const alpha = new Uint8ClampedArray(imageData.data.length / 4);
+
+  for (let index = 0, alphaIndex = 0; index < imageData.data.length; index += 4, alphaIndex += 1) {
+    alpha[alphaIndex] = imageData.data[index + 3];
+  }
+
+  return alpha;
+}
+
 function normalizeAlpha(
   alpha: Uint8ClampedArray,
   thresholdBias: number,
@@ -273,6 +283,198 @@ function decontaminateEdges(
   }
 }
 
+function colorDistance(
+  redA: number,
+  greenA: number,
+  blueA: number,
+  redB: number,
+  greenB: number,
+  blueB: number
+) {
+  const redDelta = redA - redB;
+  const greenDelta = greenA - greenB;
+  const blueDelta = blueA - blueB;
+  return Math.sqrt(redDelta * redDelta + greenDelta * greenDelta + blueDelta * blueDelta);
+}
+
+function estimateGraphicBackground(originalPixels: Uint8ClampedArray, width: number, height: number) {
+  const borderDepth = Math.max(1, Math.min(20, Math.round(Math.min(width, height) * 0.05)));
+  let red = 0;
+  let green = 0;
+  let blue = 0;
+  let samples = 0;
+  let variance = 0;
+
+  const borderPixels: Array<[number, number, number]> = [];
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const isBorder =
+        x < borderDepth || y < borderDepth || x >= width - borderDepth || y >= height - borderDepth;
+      if (!isBorder) {
+        continue;
+      }
+
+      const pixelIndex = (y * width + x) * 4;
+      const sample: [number, number, number] = [
+        originalPixels[pixelIndex],
+        originalPixels[pixelIndex + 1],
+        originalPixels[pixelIndex + 2]
+      ];
+      borderPixels.push(sample);
+      red += sample[0];
+      green += sample[1];
+      blue += sample[2];
+      samples += 1;
+    }
+  }
+
+  const mean = {
+    red: red / samples,
+    green: green / samples,
+    blue: blue / samples
+  };
+
+  borderPixels.forEach(([sampleRed, sampleGreen, sampleBlue]) => {
+    variance += colorDistance(sampleRed, sampleGreen, sampleBlue, mean.red, mean.green, mean.blue);
+  });
+
+  return {
+    ...mean,
+    borderVariance: variance / samples
+  };
+}
+
+function floodFillBackground(
+  originalPixels: Uint8ClampedArray,
+  width: number,
+  height: number,
+  background: { red: number; green: number; blue: number },
+  distanceThreshold: number
+) {
+  const visited = new Uint8Array(width * height);
+  const queue = new Uint32Array(width * height);
+  let queueStart = 0;
+  let queueEnd = 0;
+
+  const enqueueIfBackground = (x: number, y: number) => {
+    const index = y * width + x;
+    if (visited[index]) {
+      return;
+    }
+
+    const pixelIndex = index * 4;
+    const distance = colorDistance(
+      originalPixels[pixelIndex],
+      originalPixels[pixelIndex + 1],
+      originalPixels[pixelIndex + 2],
+      background.red,
+      background.green,
+      background.blue
+    );
+
+    if (distance > distanceThreshold) {
+      return;
+    }
+
+    visited[index] = 1;
+    queue[queueEnd] = index;
+    queueEnd += 1;
+  };
+
+  for (let x = 0; x < width; x += 1) {
+    enqueueIfBackground(x, 0);
+    enqueueIfBackground(x, height - 1);
+  }
+
+  for (let y = 1; y < height - 1; y += 1) {
+    enqueueIfBackground(0, y);
+    enqueueIfBackground(width - 1, y);
+  }
+
+  while (queueStart < queueEnd) {
+    const index = queue[queueStart];
+    queueStart += 1;
+    const x = index % width;
+    const y = Math.floor(index / width);
+
+    if (x > 0) {
+      enqueueIfBackground(x - 1, y);
+    }
+    if (x < width - 1) {
+      enqueueIfBackground(x + 1, y);
+    }
+    if (y > 0) {
+      enqueueIfBackground(x, y - 1);
+    }
+    if (y < height - 1) {
+      enqueueIfBackground(x, y + 1);
+    }
+  }
+
+  return visited;
+}
+
+function hardenAlpha(alpha: Uint8ClampedArray, cutoff: number) {
+  for (let index = 0; index < alpha.length; index += 1) {
+    const value = alpha[index];
+    if (value <= cutoff) {
+      alpha[index] = 0;
+    } else if (value >= cutoff + 36) {
+      alpha[index] = 255;
+    } else {
+      alpha[index] = clamp(Math.round(((value - cutoff) / 36) * 255), 0, 255);
+    }
+  }
+}
+
+function buildGraphicAlpha(
+  originalData: ImageData,
+  modelAlpha: Uint8ClampedArray,
+  refinement: BackgroundRemovalRefinementSettings
+) {
+  const { width, height, data } = originalData;
+  const background = estimateGraphicBackground(data, width, height);
+  const flatBackground = background.borderVariance < 26;
+  const floodThreshold = flatBackground ? 44 : 26;
+  const softThreshold = flatBackground ? 62 : 38;
+  const backgroundReach = floodFillBackground(data, width, height, background, floodThreshold);
+  const alpha = new Uint8ClampedArray(modelAlpha.length);
+
+  for (let index = 0; index < alpha.length; index += 1) {
+    const pixelIndex = index * 4;
+    const distance = colorDistance(
+      data[pixelIndex],
+      data[pixelIndex + 1],
+      data[pixelIndex + 2],
+      background.red,
+      background.green,
+      background.blue
+    );
+    const baseAlpha = modelAlpha[index];
+
+    if (backgroundReach[index] || distance < softThreshold) {
+      alpha[index] = 0;
+      continue;
+    }
+
+    if (distance > softThreshold + 34 || baseAlpha > 220) {
+      alpha[index] = 255;
+      continue;
+    }
+
+    const distanceMix = clamp((distance - softThreshold) / 34, 0, 1);
+    const modelMix = baseAlpha / 255;
+    alpha[index] = Math.round(clamp(distanceMix * 0.72 + modelMix * 0.58, 0, 1) * 255);
+  }
+
+  normalizeAlpha(alpha, refinement.thresholdBias + 0.12, refinement.edgeCleanup + 0.18);
+  cleanupAlpha(alpha, width, height, Math.min(1, refinement.edgeCleanup + 0.25));
+  hardenAlpha(alpha, 116);
+
+  return alpha;
+}
+
 async function buildPhotoResult(
   asset: ImageAsset,
   blob: Blob,
@@ -322,6 +524,47 @@ async function buildPhotoResult(
   return { blob: exported };
 }
 
+async function buildGraphicResult(
+  asset: ImageAsset,
+  blob: Blob,
+  refinement: BackgroundRemovalRefinementSettings
+) {
+  const cutoutImage = await loadBlobImage(blob);
+  const originalData = extractImageData(asset.image);
+  const cutoutData = extractImageData(cutoutImage);
+  const modelAlpha = extractAlphaFromImageData(cutoutData);
+  const alpha = buildGraphicAlpha(originalData, modelAlpha, refinement);
+
+  decontaminateEdges(
+    originalData.data,
+    alpha,
+    originalData.width,
+    originalData.height,
+    Math.min(1, refinement.edgeCleanup + 0.15)
+  );
+
+  for (let index = 0, alphaIndex = 0; index < originalData.data.length; index += 4, alphaIndex += 1) {
+    originalData.data[index + 3] = alpha[alphaIndex];
+  }
+
+  const canvas = createCanvas(originalData.width, originalData.height);
+  const context = getContext(canvas);
+  context.putImageData(originalData, 0, 0);
+
+  const exported = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((nextBlob) => {
+      if (!nextBlob) {
+        reject(new Error('The browser could not export the logo or graphic cutout.'));
+        return;
+      }
+
+      resolve(nextBlob);
+    }, 'image/png');
+  });
+
+  return { blob: exported };
+}
+
 export async function processBackgroundRemoval(
   asset: ImageAsset,
   mode: BackgroundRemovalMode,
@@ -331,7 +574,7 @@ export async function processBackgroundRemoval(
   const blob = await removeImageBackground(asset.file, progress);
 
   if (mode === 'graphic') {
-    return { blob };
+    return buildGraphicResult(asset, blob, refinement);
   }
 
   return buildPhotoResult(asset, blob, refinement);
