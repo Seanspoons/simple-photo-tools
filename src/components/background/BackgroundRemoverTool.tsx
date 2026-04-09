@@ -21,6 +21,18 @@ interface LoadedBlobImage {
   objectUrl: string;
 }
 
+const PHOTO_REFINEMENT_DEFAULTS = {
+  edgeSoftness: 0.45,
+  edgeCleanup: 0.35,
+  thresholdBias: 0
+};
+
+const GRAPHIC_REFINEMENT_DEFAULTS = {
+  edgeSoftness: 0.08,
+  edgeCleanup: 0.75,
+  thresholdBias: 0.18
+};
+
 function getPreviewSize(width: number, height: number): { width: number; height: number } {
   const maxWidth = 960;
   const maxHeight = 720;
@@ -92,7 +104,9 @@ export function BackgroundRemoverTool() {
   const [resultBlob, setResultBlob] = useState<Blob | null>(null);
   const [resultPreview, setResultPreview] = useState<LoadedBlobImage | null>(null);
   const [previewMode, setPreviewMode] = useState<BackgroundPreviewMode>('after');
+  const [previewZoom, setPreviewZoom] = useState(1);
   const [removalMode, setRemovalMode] = useState<BackgroundRemovalMode>('photo');
+  const [refinementSettings, setRefinementSettings] = useState(PHOTO_REFINEMENT_DEFAULTS);
   const [backgroundFillMode, setBackgroundFillMode] = useState<BackgroundFillMode>('transparent');
   const [backgroundColor, setBackgroundColor] = useState('#ffffff');
   const [modelStatus, setModelStatus] = useState<ModelStatus>('loading');
@@ -195,18 +209,24 @@ export function BackgroundRemoverTool() {
 
     return `${imageAsset.name} • ${imageAsset.width} × ${imageAsset.height}px`;
   }, [imageAsset]);
-  const refinementSettings = useMemo(
-    () => ({
-      edgeSoftness: removalMode === 'photo' ? 0.45 : 0.08,
-      edgeCleanup: removalMode === 'photo' ? 0.35 : 0.75,
-      thresholdBias: removalMode === 'photo' ? 0 : 0.18
-    }),
-    [removalMode]
-  );
   const imageMegapixels = imageAsset ? (imageAsset.width * imageAsset.height) / 1000000 : 0;
   const mayTakeLonger = imageMegapixels >= 12;
 
   const canRunRemoval = imageAsset !== null && modelStatus === 'ready' && !isBusy;
+
+  useEffect(() => {
+    setRefinementSettings(
+      removalMode === 'photo' ? PHOTO_REFINEMENT_DEFAULTS : GRAPHIC_REFINEMENT_DEFAULTS
+    );
+
+    if (resultBlob) {
+      setStatusMessage(
+        removalMode === 'photo'
+          ? 'Switched to Photo mode. Run background removal again to refresh the cutout.'
+          : 'Switched to Logo / Graphic mode. Run background removal again to refresh the cutout.'
+      );
+    }
+  }, [removalMode]);
 
   const handleFileSelect = async (file: File) => {
     setIsBusy(true);
@@ -231,7 +251,9 @@ export function BackgroundRemoverTool() {
         return null;
       });
       setPreviewMode('before');
+      setPreviewZoom(1);
       setRemovalMode('photo');
+      setRefinementSettings(PHOTO_REFINEMENT_DEFAULTS);
       setBackgroundFillMode('transparent');
       setBackgroundColor('#ffffff');
       setStatusMessage(
@@ -313,6 +335,7 @@ export function BackgroundRemoverTool() {
     });
     setResultBlob(null);
     setPreviewMode('after');
+    setPreviewZoom(1);
     setBackgroundFillMode('transparent');
     setBackgroundColor('#ffffff');
     setStatusMessage('Ready for another image.');
@@ -480,6 +503,74 @@ export function BackgroundRemoverTool() {
               </div>
             </div>
 
+            <details className="background-remover-advanced">
+              <summary>Refine result</summary>
+              <div className="controls-grid background-remover-refine-grid">
+                <label className="field">
+                  <span>
+                    Edge cleanup ({Math.round(refinementSettings.edgeCleanup * 100)}%)
+                  </span>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={Math.round(refinementSettings.edgeCleanup * 100)}
+                    onChange={(event) =>
+                      setRefinementSettings((current) => ({
+                        ...current,
+                        edgeCleanup: Number(event.target.value) / 100
+                      }))
+                    }
+                    disabled={isBusy}
+                  />
+                </label>
+                <label className="field">
+                  <span>
+                    Edge softness ({Math.round(refinementSettings.edgeSoftness * 100)}%)
+                  </span>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={Math.round(refinementSettings.edgeSoftness * 100)}
+                    onChange={(event) =>
+                      setRefinementSettings((current) => ({
+                        ...current,
+                        edgeSoftness: Number(event.target.value) / 100
+                      }))
+                    }
+                    disabled={isBusy}
+                  />
+                </label>
+                <label className="field field-full">
+                  <span>
+                    Threshold bias ({refinementSettings.thresholdBias >= 0 ? '+' : ''}
+                    {refinementSettings.thresholdBias.toFixed(2)})
+                  </span>
+                  <input
+                    type="range"
+                    min="-40"
+                    max="40"
+                    step="1"
+                    value={Math.round(refinementSettings.thresholdBias * 100)}
+                    onChange={(event) =>
+                      setRefinementSettings((current) => ({
+                        ...current,
+                        thresholdBias: Number(event.target.value) / 100
+                      }))
+                    }
+                    disabled={isBusy}
+                  />
+                </label>
+              </div>
+              <p className="helper-text">
+                Keep the defaults for most images. Increase cleanup for harder edges, or soften the
+                mask slightly for wispy photo details.
+              </p>
+            </details>
+
               {modelStatus !== 'ready' ? (
               <div className="background-remover-stage-card" aria-live="polite">
                 <p className="background-remover-stage-title">{modelStage}</p>
@@ -592,6 +683,25 @@ export function BackgroundRemoverTool() {
               </div>
             </div>
 
+            <div className="preview-compare-bar background-remover-zoom-bar" aria-label="Preview zoom">
+              <span className="preview-compare-label">Zoom</span>
+              <div className="preview-compare-toggle" role="tablist" aria-label="Preview zoom">
+                {[1, 2, 3].map((zoomLevel) => (
+                  <button
+                    key={zoomLevel}
+                    type="button"
+                    role="tab"
+                    aria-selected={previewZoom === zoomLevel}
+                    className={`preview-compare-button ${previewZoom === zoomLevel ? 'is-active' : ''}`}
+                    onClick={() => setPreviewZoom(zoomLevel)}
+                    disabled={!imageAsset}
+                  >
+                    {zoomLevel}x
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="preview-shell background-remover-preview-shell">
               {imageAsset ? (
                 <div className="background-remover-preview-frame">
@@ -603,6 +713,10 @@ export function BackgroundRemoverTool() {
                   <canvas
                     ref={previewCanvasRef}
                     className="preview-canvas"
+                    style={{
+                      transform: previewZoom === 1 ? 'none' : `scale(${previewZoom})`,
+                      transformOrigin: 'top center'
+                    }}
                     aria-label="Background remover preview"
                   />
                 </div>
