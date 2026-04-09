@@ -91,6 +91,14 @@ export const ROUTE_SEO: Record<string, RouteSeo> = {
     image: 'https://simplephototools.com/og-metadata.png',
     imageAlt: 'Remove Metadata tool preview card'
   },
+  '/background-remover': {
+    title: 'Background Remover | Remove Photo Backgrounds in Your Browser',
+    description:
+      'Remove photo backgrounds directly in your browser and download a transparent cutout with private client-side processing and no uploads.',
+    canonicalPath: '/background-remover',
+    image: 'https://simplephototools.com/og-home.png',
+    imageAlt: 'Background Remover tool preview card'
+  },
   '/resize-image-online': {
     title: 'Resize Image Online | Free Browser-Based Photo Resizer',
     description:

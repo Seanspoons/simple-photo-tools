@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CollageMaker } from './components/collage/CollageMaker';
+import { BackgroundRemoverTool } from './components/background/BackgroundRemoverTool';
 import { ImageCompressorTool } from './components/compressor/ImageCompressorTool';
 import { ImageConverterTool } from './components/converter/ImageConverterTool';
 import { CropTool } from './components/crop/CropTool';
@@ -63,6 +64,7 @@ const LIVE_TOOL_LINKS: Array<{ path: AppRoute; label: string }> = [
   { path: '/resize', label: 'Photo Resizer' },
   { path: '/compress', label: 'Image Compressor' },
   { path: '/crop', label: 'Crop Tool' },
+  { path: '/background-remover', label: 'Background Remover' },
   { path: '/metadata', label: 'Remove Metadata' },
   { path: '/rotate', label: 'Rotate / Flip' },
   { path: '/social', label: 'Social Media Formatter' }
@@ -162,7 +164,7 @@ const TOOL_CARDS: ToolCard[] = [
     name: 'Background Remover',
     description: 'Remove image backgrounds for cleaner cutouts.',
     blurb: 'Helpful for product photos, portraits, and simple graphics.',
-    status: 'soon',
+    status: 'live',
     icon: 'background'
   }
 ];
@@ -618,7 +620,9 @@ function RouteIntro({
                 ? 'Crop Tool'
                 : route === '/metadata' || route === '/remove-photo-metadata'
                   ? 'Remove Metadata'
-                  : route === '/rotate'
+                  : route === '/background-remover'
+                    ? 'Background Remover'
+                    : route === '/rotate'
                     ? 'Rotate / Flip'
                     : route === '/social' || route === '/format-image-for-social-media'
                       ? 'Social Media Formatter'
@@ -1034,7 +1038,7 @@ export default function App() {
       case '/metadata':
         return <RemoveMetadataTool />;
       case '/background-remover':
-        return <ComingSoonPage toolName="Background Remover" onNavigate={navigateTo} />;
+        return <BackgroundRemoverTool />;
       case '/border':
         return <ComingSoonPage toolName="Border Maker" onNavigate={navigateTo} />;
       default:

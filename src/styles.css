@@ -1229,6 +1229,28 @@ select:disabled {
   display: none;
 }
 
+.background-remover-preview-shell {
+  display: grid;
+}
+
+.background-remover-preview-frame {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 280px;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(45deg, rgba(217, 162, 77, 0.08) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(217, 162, 77, 0.08) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(217, 162, 77, 0.08) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(217, 162, 77, 0.08) 75%),
+    #f8f4ec;
+  background-size: 24px 24px;
+  background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+}
+
 .preview-placeholder {
   min-height: 300px;
   display: grid;
