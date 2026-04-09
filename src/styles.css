@@ -1321,6 +1321,12 @@ select:disabled {
   background: #f9f6ef;
 }
 
+.background-remover-stage-card + .export-action-row,
+.background-remover-ready-note + .export-action-row,
+.background-remover-tip-note + .export-action-row {
+  margin-top: 16px;
+}
+
 .background-remover-tip-note {
   margin-top: 14px;
 }
