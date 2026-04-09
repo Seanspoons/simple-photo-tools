@@ -259,7 +259,7 @@ export function BackgroundRemoverTool() {
 
     try {
       const { blob: nextBlob } = await processBackgroundRemoval(
-        imageAsset.file,
+        imageAsset,
         removalMode,
         refinementSettings,
         (key, current, total) => {
