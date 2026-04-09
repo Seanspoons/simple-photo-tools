@@ -2497,6 +2497,7 @@ select:disabled {
 
 @media (min-width: 921px) {
   .converter-layout-grid .preview-sticky-wrap,
+  .background-remover-layout-grid .preview-sticky-wrap,
   .watermark-layout-grid .preview-sticky-wrap {
     position: sticky;
     top: 20px;

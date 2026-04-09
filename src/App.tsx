@@ -58,16 +58,16 @@ interface ToolCard {
 }
 
 const LIVE_TOOL_LINKS: Array<{ path: AppRoute; label: string }> = [
-  { path: '/watermarker', label: 'Watermarker' },
+  { path: '/watermarker', label: 'Photo Watermarker' },
   { path: '/collage', label: 'Collage Maker' },
+  { path: '/background-remover', label: 'Background Remover' },
   { path: '/convert', label: 'Image Converter' },
+  { path: '/crop', label: 'Crop Tool' },
   { path: '/resize', label: 'Photo Resizer' },
   { path: '/compress', label: 'Image Compressor' },
-  { path: '/crop', label: 'Crop Tool' },
-  { path: '/background-remover', label: 'Background Remover' },
-  { path: '/metadata', label: 'Remove Metadata' },
   { path: '/rotate', label: 'Rotate / Flip' },
-  { path: '/social', label: 'Social Media Formatter' }
+  { path: '/social', label: 'Social Media Formatter' },
+  { path: '/metadata', label: 'Remove Metadata' }
 ];
 
 const TOOL_CARDS: ToolCard[] = [
@@ -88,28 +88,12 @@ const TOOL_CARDS: ToolCard[] = [
     icon: 'collage'
   },
   {
-    path: '/resize',
-    name: 'Photo Resizer',
-    description: 'Resize photos for sharing and social posts.',
-    blurb: 'Useful for Instagram, websites, and email.',
+    path: '/background-remover',
+    name: 'Background Remover',
+    description: 'Remove image backgrounds for cleaner cutouts.',
+    blurb: 'Helpful for product photos, portraits, and simple graphics.',
     status: 'live',
-    icon: 'resize'
-  },
-  {
-    path: '/compress',
-    name: 'Image Compressor',
-    description: 'Make image files smaller without extra hassle.',
-    blurb: 'Helpful when photos are too large to send or upload.',
-    status: 'live',
-    icon: 'compress'
-  },
-  {
-    path: '/blur',
-    name: 'Blur / Pixelate',
-    description: 'Blur or pixelate part of an image before saving.',
-    blurb: 'Useful for hiding faces, details, or private information.',
-    status: 'soon',
-    icon: 'blur'
+    icon: 'background'
   },
   {
     path: '/convert',
@@ -126,6 +110,22 @@ const TOOL_CARDS: ToolCard[] = [
     blurb: 'Useful for cleaner framing and common aspect ratios.',
     status: 'live',
     icon: 'crop'
+  },
+  {
+    path: '/resize',
+    name: 'Photo Resizer',
+    description: 'Resize photos for sharing and social posts.',
+    blurb: 'Useful for Instagram, websites, and email.',
+    status: 'live',
+    icon: 'resize'
+  },
+  {
+    path: '/compress',
+    name: 'Image Compressor',
+    description: 'Make image files smaller without extra hassle.',
+    blurb: 'Helpful when photos are too large to send or upload.',
+    status: 'live',
+    icon: 'compress'
   },
   {
     path: '/rotate',
@@ -152,20 +152,20 @@ const TOOL_CARDS: ToolCard[] = [
     icon: 'metadata'
   },
   {
+    path: '/blur',
+    name: 'Blur / Pixelate',
+    description: 'Blur or pixelate part of an image before saving.',
+    blurb: 'Useful for hiding faces, details, or private information.',
+    status: 'soon',
+    icon: 'blur'
+  },
+  {
     path: '/border',
     name: 'Border Maker',
     description: 'Add padding or a simple border around a photo.',
     blurb: 'Useful for product shots and social posts.',
     status: 'soon',
     icon: 'border'
-  },
-  {
-    path: '/background-remover',
-    name: 'Background Remover',
-    description: 'Remove image backgrounds for cleaner cutouts.',
-    blurb: 'Helpful for product photos, portraits, and simple graphics.',
-    status: 'live',
-    icon: 'background'
   }
 ];
 
