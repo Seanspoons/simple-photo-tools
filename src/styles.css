@@ -1266,6 +1266,21 @@ select:disabled {
   font-weight: 700;
 }
 
+.background-remover-progress-track {
+  width: 100%;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(217, 162, 77, 0.16);
+}
+
+.background-remover-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #d9a24d 0%, #e7bf73 100%);
+}
+
 .background-remover-loading-bars {
   display: grid;
   gap: 8px;
@@ -1297,6 +1312,17 @@ select:disabled {
   color: var(--accent);
   font-weight: 700;
   z-index: 1;
+}
+
+.background-remover-ready-note {
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: #f9f6ef;
+}
+
+.background-remover-tip-note {
+  margin-top: 14px;
 }
 
 @keyframes shimmer-slide {

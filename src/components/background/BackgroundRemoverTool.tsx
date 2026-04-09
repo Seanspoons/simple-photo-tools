@@ -93,6 +93,7 @@ export function BackgroundRemoverTool() {
   const [modelStatus, setModelStatus] = useState<ModelStatus>('loading');
   const [modelStage, setModelStage] = useState('Preparing model in your browser...');
   const [modelProgress, setModelProgress] = useState<number | null>(null);
+  const [modelReloadToken, setModelReloadToken] = useState(0);
   const [isBusy, setIsBusy] = useState(false);
   const [confirmAction, setConfirmAction] = useState<BackgroundRemoverConfirmAction>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -147,7 +148,7 @@ export function BackgroundRemoverTool() {
     return () => {
       isCancelled = true;
     };
-  }, []);
+  }, [modelReloadToken]);
 
   useEffect(() => {
     return () => {
@@ -189,6 +190,8 @@ export function BackgroundRemoverTool() {
 
     return `${imageAsset.name} • ${imageAsset.width} × ${imageAsset.height}px`;
   }, [imageAsset]);
+  const imageMegapixels = imageAsset ? (imageAsset.width * imageAsset.height) / 1000000 : 0;
+  const mayTakeLonger = imageMegapixels >= 12;
 
   const canRunRemoval = imageAsset !== null && modelStatus === 'ready' && !isBusy;
 
@@ -421,9 +424,17 @@ export function BackgroundRemoverTool() {
                 : 'The first run downloads the model into your browser cache. It usually takes longer once, then gets faster.'}
             </p>
 
-            {modelStatus !== 'ready' ? (
+              {modelStatus !== 'ready' ? (
               <div className="background-remover-stage-card" aria-live="polite">
                 <p className="background-remover-stage-title">{modelStage}</p>
+                {modelProgress !== null ? (
+                  <div className="background-remover-progress-track" aria-hidden="true">
+                    <span
+                      className="background-remover-progress-fill"
+                      style={{ width: `${Math.round(modelProgress * 100)}%` }}
+                    />
+                  </div>
+                ) : null}
                 <div className="background-remover-loading-bars" aria-hidden="true">
                   <span className="background-remover-loading-bar" />
                   <span className="background-remover-loading-bar is-delay-1" />
@@ -433,6 +444,33 @@ export function BackgroundRemoverTool() {
                   {modelProgress !== null
                     ? `${Math.round(modelProgress * 100)}% ready`
                     : 'Preparing browser runtime and model files'}
+                </p>
+                {modelStatus === 'error' ? (
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={() => setModelReloadToken((current) => current + 1)}
+                  >
+                    Retry Model Load
+                  </button>
+                ) : null}
+              </div>
+            ) : (
+              <div className="background-remover-ready-note">
+                <p className="helper-text">
+                  Model ready. Run the cutout when your photo looks right.
+                </p>
+              </div>
+            )}
+
+            {mayTakeLonger ? (
+              <div className="tip-note background-remover-tip-note" role="note">
+                <span className="tip-note-icon" aria-hidden="true">
+                  i
+                </span>
+                <p className="helper-text">
+                  This photo is fairly large, so the first pass may take a bit longer on mobile or
+                  lower-powered devices.
                 </p>
               </div>
             ) : null}
@@ -444,7 +482,7 @@ export function BackgroundRemoverTool() {
                 onClick={handleRemoveBackground}
                 disabled={!canRunRemoval}
               >
-                {isBusy ? 'Removing Background...' : 'Remove Background'}
+                {isBusy ? 'Removing Background...' : resultBlob ? 'Remove Again' : 'Remove Background'}
               </button>
               <button
                 type="button"
@@ -518,6 +556,9 @@ export function BackgroundRemoverTool() {
                 </div>
               )}
             </div>
+            <p className="helper-text section-helper-text">
+              Transparent areas are shown on the checkerboard background so the cutout is easy to inspect.
+            </p>
           </section>
 
           <section className="panel">
